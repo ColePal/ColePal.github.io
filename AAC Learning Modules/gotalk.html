@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GO Talk Device — AAC Board</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0e2533;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+      gap: 12px;
+    }
+
+    h1 { color: #fff; font-size: 1.1rem; }
+
+    /* ── Level selector bar ────────────────────────────────────── */
+    .level-bar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .level-label {
+      color: #a0c4d0;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-right: 4px;
+    }
+
+    .level-btn {
+      background: #1a3c4a;
+      color: #a0c4d0;
+      border: 2px solid #1a6b8a;
+      border-radius: 8px;
+      padding: 6px 18px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+
+    .level-btn:hover { background: #1a6b8a; color: #fff; }
+
+    .level-btn.active {
+      background: #1a6b8a;
+      color: #fff;
+      border-color: #4db8d4;
+    }
+
+    /* ── Board wrapper ─────────────────────────────────────────── */
+    .board-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 860px;
+    }
+
+    .board-wrap img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 8px;
+    }
+
+    .overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+    }
+
+    /* ── Cell buttons ──────────────────────────────────────────── */
+    .cell {
+      position: absolute;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background 0.15s, opacity 0.3s;
+      pointer-events: auto;
+    }
+
+    .cell:hover { background: rgba(74,184,212,0.22); }
+    .cell:active { background: rgba(74,184,212,0.45); }
+    .cell.speaking { background: rgba(255,220,0,0.35); }
+
+    /* ── Onboarding dim / highlight ────────────────────────────── */
+    body.onboarding .cell { opacity: 0.12; pointer-events: none; }
+    body.onboarding .cell.highlight {
+      opacity: 1;
+      pointer-events: auto;
+      animation: glow 1.2s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow {
+      from { box-shadow: 0 0 6px 2px rgba(74,184,212,0.6); }
+      to   { box-shadow: 0 0 18px 6px rgba(74,184,212,0.9); }
+    }
+
+    body.onboarding .board-wrap::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      border-radius: 8px;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    body.onboarding .cell.highlight { z-index: 2; }
+
+    /* Highlight the level bar during onboarding */
+    body.onboarding .level-bar.highlight-bar .level-btn {
+      animation: glow-btn 1.2s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow-btn {
+      from { box-shadow: 0 0 4px 1px rgba(74,184,212,0.5); }
+      to   { box-shadow: 0 0 14px 5px rgba(74,184,212,0.9); }
+    }
+
+    /* ── Onboarding panel ──────────────────────────────────────── */
+    #ob-panel {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      border-radius: 14px;
+      padding: 20px 24px;
+      max-width: 480px;
+      width: 92%;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+      z-index: 200;
+    }
+
+    #ob-panel h2 { font-size: 1rem; margin-bottom: 8px; color: #0e2533; }
+    #ob-panel p  { font-size: 0.88rem; color: #444; line-height: 1.55; margin-bottom: 16px; }
+
+    .ob-footer { display: flex; align-items: center; justify-content: space-between; }
+    .dots { display: flex; gap: 5px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #ddd; transition: background 0.2s; }
+    .dot.active { background: #1a6b8a; }
+
+    #ob-next {
+      background: #1a6b8a;
+      color: #fff;
+      border: none;
+      padding: 9px 22px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    #ob-next:hover { background: #145566; }
+
+    /* ── Speech bar ────────────────────────────────────────────── */
+    #speech-bar { font-size: 0.9rem; color: #a0c4d0; min-height: 1.4em; text-align: center; }
+
+    /* ── Level change flash ────────────────────────────────────── */
+    .board-wrap.level-change {
+      animation: flash-overlay 0.35s ease-out;
+    }
+
+    @keyframes flash-overlay {
+      0%   { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+  </style>
+</head>
+<body class="onboarding">
+
+  <h1>GO Talk Device — AAC Board</h1>
+
+  <div class="level-bar" id="level-bar">
+    <span class="level-label">Overlay:</span>
+    <button class="level-btn active" data-level="1">Level 1</button>
+    <button class="level-btn"        data-level="2">Level 2</button>
+    <button class="level-btn"        data-level="3">Level 3</button>
+  </div>
+
+  <div class="board-wrap" id="board-wrap">
+    <img src="gotalk.png" alt="GO Talk AAC Device" draggable="false">
+    <div class="overlay" id="overlay"></div>
+  </div>
+
+  <p id="speech-bar">Complete the tour to explore the board</p>
+
+  <!-- Onboarding panel -->
+  <div id="ob-panel">
+    <h2 id="ob-title">Welcome to GO Talk</h2>
+    <p  id="ob-body">The <strong>GO Talk</strong> is a dedicated AAC (Augmentative and Alternative Communication) device — a standalone speech-generating gadget, not a phone app. It's designed for simplicity and reliability in any environment.</p>
+    <div class="ob-footer">
+      <div class="dots" id="dots"></div>
+      <button id="ob-next">Next →</button>
+    </div>
+  </div>
+
+  <script>
+    // ── Image native dimensions ─────────────────────────────────
+    const IW = 640, IH = 480;
+
+    // ── Grid layout (% of IW / IH) ─────────────────────────────
+    // 4 cell rows confirmed from image analysis
+    // Row boundaries (px → %)
+    const rows = [
+      { top: 159/IH*100, h: 45/IH*100 },   // Row 0: y=159..203
+      { top: 221/IH*100, h: 45/IH*100 },   // Row 1: y=221..265
+      { top: 285/IH*100, h: 45/IH*100 },   // Row 2: y=285..329
+      { top: 349/IH*100, h: 46/IH*100 },   // Row 3: y=349..394
+    ];
+
+    // 5 content columns in x=48..595 (547px ÷ 5 ≈ 109px each)
+    const cols = [
+      { left:  48/IW*100, w: 109/IW*100 },  // Col 0
+      { left: 157/IW*100, w: 109/IW*100 },  // Col 1
+      { left: 266/IW*100, w: 109/IW*100 },  // Col 2
+      { left: 375/IW*100, w: 110/IW*100 },  // Col 3
+      { left: 485/IW*100, w: 110/IW*100 },  // Col 4
+    ];
+
+    // ── Vocabulary: 3 levels × 4 rows × 5 cols ─────────────────
+    // vocab[level][row][col]
+    const vocab = {
+      1: [
+        // Level 1 — Basic needs & social communication
+        ["I",        "want",      "go",       "more",     "stop"],
+        ["eat",      "drink",     "yes",      "no",       "help"],
+        ["please",   "thank you", "hi",       "bye",      "all done"],
+        ["bathroom", "hurts",     "tired",    "happy",    "sad"],
+      ],
+      2: [
+        // Level 2 — Intermediate phrases & concepts
+        ["I like",   "I need",    "can I",    "let's",    "my"],
+        ["today",    "tomorrow",  "here",     "there",    "play"],
+        ["school",   "home",      "work",     "people",   "things"],
+        ["good",     "bad",       "fun",      "hard",     "silly"],
+      ],
+      3: [
+        // Level 3 — Advanced connectives & modifiers
+        ["because",  "and",       "but",      "if",       "when"],
+        ["where",    "who",       "what",     "how",      "why"],
+        ["really",   "very",      "a little", "always",   "never"],
+        ["maybe",    "sometimes", "can",      "will",     "should"],
+      ],
+    };
+
+    // ── Category maps for onboarding highlights ─────────────────
+    function rowIds(r)  { return cols.map((_, c) => `r${r}c${c}`); }
+    function allIds()   { return rows.flatMap((_, r) => rowIds(r)); }
+
+    // ── TTS helper ───────────────────────────────────────────────
+    function speak(text) {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate = 0.88;
+      window.speechSynthesis.speak(u);
+      document.getElementById('speech-bar').textContent = '🔊 ' + text;
+    }
+
+    // ── Current level state ──────────────────────────────────────
+    let currentLevel = 1;
+
+    // ── Build / update button overlays ──────────────────────────
+    function buildButtons() {
+      const overlay = document.getElementById('overlay');
+      overlay.innerHTML = '';
+
+      const lv = vocab[currentLevel];
+      for (let r = 0; r < rows.length; r++) {
+        for (let c = 0; c < cols.length; c++) {
+          const word = lv[r][c];
+          const btn  = document.createElement('button');
+          btn.className    = 'cell';
+          btn.dataset.id   = `r${r}c${c}`;
+          btn.dataset.word = word;
+          btn.style.left   = cols[c].left.toFixed(3) + '%';
+          btn.style.top    = rows[r].top.toFixed(3)  + '%';
+          btn.style.width  = cols[c].w.toFixed(3)    + '%';
+          btn.style.height = rows[r].h.toFixed(3)    + '%';
+          btn.title        = word;
+          btn.addEventListener('click', () => {
+            speak(word);
+            btn.classList.add('speaking');
+            setTimeout(() => btn.classList.remove('speaking'), 800);
+          });
+          overlay.appendChild(btn);
+        }
+      }
+    }
+
+    // ── Level switching ──────────────────────────────────────────
+    document.querySelectorAll('.level-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const lv = parseInt(btn.dataset.level);
+        if (lv === currentLevel) return;
+        currentLevel = lv;
+
+        // Update active button style
+        document.querySelectorAll('.level-btn').forEach(b =>
+          b.classList.toggle('active', b.dataset.level == lv)
+        );
+
+        // Rebuild buttons with new vocabulary
+        buildButtons();
+
+        // Flash animation to signal overlay change
+        const wrap = document.getElementById('board-wrap');
+        wrap.classList.remove('level-change');
+        void wrap.offsetWidth;  // reflow
+        wrap.classList.add('level-change');
+
+        document.getElementById('speech-bar').textContent =
+          `Overlay switched to Level ${lv} — ${['Basic', 'Intermediate', 'Advanced'][lv-1]} vocabulary`;
+      });
+    });
+
+    // Initial build
+    buildButtons();
+
+    // ── Onboarding steps ─────────────────────────────────────────
+    const steps = [
+      {
+        title: "Welcome to GO Talk",
+        body:  "The <strong>GO Talk</strong> is a <em>dedicated AAC speech-generating device</em> — a standalone gadget, not an app. It is built to be simple, durable, and reliable in any environment, whether at school, home, or work.",
+        highlight: [],
+        highlightBar: false,
+      },
+      {
+        title: "📦 A Physical Device",
+        body:  "Unlike app-based AAC systems, the GO Talk is a <em>hardware device</em>. It has a set number of cells arranged in a fixed grid. Each cell hides a small speaker button — you press a cell and the device speaks the recorded or synthesised word.",
+        highlight: allIds(),
+        highlightBar: false,
+      },
+      {
+        title: "📄 Paper Overlay Levels",
+        body:  "GO Talk's key feature is its <strong>overlay system</strong>. A printed paper sheet slides over the grid, changing what each button represents. The device stores multiple <em>levels</em> (typically 3–5), so the same grid can hold completely different vocabulary depending on the overlay in use.",
+        highlight: [],
+        highlightBar: true,
+      },
+      {
+        title: "🔢 Switching Levels",
+        body:  "Use the <strong>Level 1 / 2 / 3</strong> buttons above to simulate swapping the paper overlay. Try clicking each level now — you will see the vocabulary labels change while the physical grid stays the same.",
+        highlight: [],
+        highlightBar: true,
+      },
+      {
+        title: "🟦 Row 1 — Core Requests",
+        body:  "<strong>Level 1, Row 1</strong> holds the most frequently needed words: <em>I, want, go, more, stop</em>. These form the foundation of requesting — a person can communicate a huge range of needs by combining just these five words.",
+        highlight: rowIds(0),
+        highlightBar: false,
+      },
+      {
+        title: "🍽️ Row 2 — Daily Needs",
+        body:  "Row 2 covers daily living essentials: <em>eat, drink, yes, no, help</em>. Short, high-frequency responses that are used dozens of times every day. Placing them on a dedicated device button means they are always fast to access.",
+        highlight: rowIds(1),
+        highlightBar: false,
+      },
+      {
+        title: "👋 Row 3 — Social & Polite Phrases",
+        body:  "Row 3 supports social interaction: <em>please, thank you, hi, bye, all done</em>. Politeness vocabulary helps a person engage with others naturally and independently — without always needing a helper to prompt them.",
+        highlight: rowIds(2),
+        highlightBar: false,
+      },
+      {
+        title: "✅ Explore Freely",
+        body:  "Tour complete! Click any cell to hear it spoken aloud. Switch levels to see how vocabulary changes across overlays — exactly as a real GO Talk user would experience swapping paper overlays on their device.",
+        highlight: [],
+        highlightBar: false,
+        last: true,
+      },
+    ];
+
+    let step  = 0;
+    const TOTAL = steps.length;
+
+    // Build dots
+    const dotsEl = document.getElementById('dots');
+    for (let i = 0; i < TOTAL; i++) {
+      const d = document.createElement('span');
+      d.className = 'dot' + (i === 0 ? ' active' : '');
+      dotsEl.appendChild(d);
+    }
+
+    function showStep(s) {
+      const st = steps[s];
+      document.getElementById('ob-title').textContent = st.title;
+      document.getElementById('ob-body').innerHTML   = st.body;
+      document.getElementById('ob-next').textContent  = st.last ? '🎉 Explore!' : 'Next →';
+
+      // Dots
+      dotsEl.querySelectorAll('.dot').forEach((d, i) =>
+        d.classList.toggle('active', i === s)
+      );
+
+      // Cell highlights
+      document.querySelectorAll('.cell').forEach(btn =>
+        btn.classList.toggle('highlight', st.highlight.includes(btn.dataset.id))
+      );
+
+      // Level bar highlight
+      document.getElementById('level-bar').classList.toggle('highlight-bar', !!st.highlightBar);
+
+      if (st.last) {
+        document.body.classList.remove('onboarding');
+        document.getElementById('ob-panel').style.display = 'none';
+        document.getElementById('speech-bar').textContent = 'Click any cell to hear it spoken — switch levels to explore different vocabulary overlays';
+      }
+    }
+
+    document.getElementById('ob-next').addEventListener('click', () => {
+      step++;
+      if (step < TOTAL) showStep(step);
+    });
+
+    showStep(0);
+  </script>
+</body>
+</html>
