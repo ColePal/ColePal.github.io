@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LAMP Words for Life AAC Board</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #1a1a2e;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+      gap: 12px;
+    }
+
+    h1 { color: #fff; font-size: 1.1rem; }
+
+    .board-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    .board-wrap img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 8px;
+    }
+
+    .overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+    }
+
+    /* ── Cell buttons ─────────────────────────────────────────── */
+    .cell {
+      position: absolute;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background 0.15s, opacity 0.3s;
+      pointer-events: auto;
+    }
+
+    .cell:hover { background: rgba(255,255,255,0.25); }
+    .cell:active { background: rgba(255,255,255,0.45); }
+    .cell.speaking { background: rgba(255,220,0,0.35); }
+
+    /* Onboarding dim / highlight */
+    body.onboarding .cell { opacity: 0.15; pointer-events: none; }
+    body.onboarding .cell.highlight {
+      opacity: 1;
+      pointer-events: auto;
+      animation: glow 1.2s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow {
+      from { box-shadow: 0 0 6px 2px rgba(255,220,50,0.6); }
+      to   { box-shadow: 0 0 18px 6px rgba(255,220,50,0.9); }
+    }
+
+    /* Onboarding overlay dim */
+    body.onboarding .board-wrap::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      border-radius: 8px;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    body.onboarding .cell.highlight { z-index: 2; }
+
+    /* ── Onboarding panel ─────────────────────────────────────── */
+    #ob-panel {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      border-radius: 14px;
+      padding: 20px 24px;
+      max-width: 480px;
+      width: 92%;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      z-index: 200;
+    }
+
+    #ob-panel h2 { font-size: 1rem; margin-bottom: 8px; color: #1a1a2e; }
+    #ob-panel p  { font-size: 0.88rem; color: #444; line-height: 1.55; margin-bottom: 16px; }
+
+    .ob-footer { display: flex; align-items: center; justify-content: space-between; }
+    .dots { display: flex; gap: 5px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #ddd; transition: background 0.2s; }
+    .dot.active { background: #2a6049; }
+
+    #ob-next {
+      background: #2a6049;
+      color: #fff;
+      border: none;
+      padding: 9px 22px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    #ob-next:hover { background: #1e4535; }
+
+    /* ── Speech bar ─────────────────────────────────────────── */
+    #speech-bar { font-size: 0.9rem; color: #aaa; min-height: 1.4em; text-align: center; }
+  </style>
+</head>
+<body class="onboarding">
+
+  <h1>LAMP Words for Life Board</h1>
+
+  <div class="board-wrap">
+    <img src="lamp.png" alt="LAMP Words for Life AAC Board" draggable="false">
+    <div class="overlay" id="overlay"></div>
+  </div>
+
+  <p id="speech-bar">Complete the tour to explore the board</p>
+
+  <!-- Onboarding panel -->
+  <div id="ob-panel">
+    <h2 id="ob-title">Welcome to LAMP Words for Life</h2>
+    <p  id="ob-body">LAMP Words for Life (WFL) is an AAC vocabulary system built on <strong>motor learning</strong> — every word lives in the same spot every time, so users develop reliable muscle memory to communicate faster and more independently. Let's explore how it's organised.</p>
+    <div class="ob-footer">
+      <div class="dots" id="dots"></div>
+      <button id="ob-next">Next →</button>
+    </div>
+  </div>
+
+  <script>
+    // ── Image & grid constants ─────────────────────────────────────────
+    const IW = 1023, IH = 656;
+
+    // Column pixel boundaries (from grey-band analysis)
+    const colSep = [7, 89, 175, 258, 342, 425, 509, 593, 678, 760, 844, 928, 1010];
+    // Row pixel boundaries
+    const rowSep = [13, 102, 191, 284, 375, 468, 558, 647];
+
+    // ── Vocabulary grid [row][col] — 7 rows × 12 cols ──────────────────
+    const vocab = [
+      // Row 0 — navigation toolbar
+      ["Back", "Home", "Clear", "Delete", "Recents", "Topics", "Core Words", "Quick Chat", "Keyboard", "Settings", "Help", "Favourites"],
+      // Row 1 — pronouns
+      ["I", "you", "he", "she", "it", "we", "they", "who", "my", "your", "his", "her"],
+      // Row 2 — core verbs (left) · descriptors (mid) · prepositions (right)
+      ["want", "like", "go", "good", "big", "more", "little", "different", "in", "out", "up", "down"],
+      // Row 3 — action & cognitive verbs
+      ["get", "have", "make", "do", "need", "feel", "think", "know", "say", "come", "put", "give"],
+      // Row 4 — everyday activity verbs
+      ["help", "stop", "play", "eat", "drink", "look", "turn", "open", "watch", "sleep", "work", "read"],
+      // Row 5 — social words & connectors
+      ["yes", "no", "please", "thank you", "here", "there", "on", "off", "with", "to", "for", "not"],
+      // Row 6 — question words & logical connectors
+      ["what", "where", "when", "why", "how", "again", "all", "some", "same", "bad", "and", "or"],
+    ];
+
+    // ── TTS helper ─────────────────────────────────────────────────────
+    function speak(text) {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate = 0.88;
+      window.speechSynthesis.speak(u);
+      document.getElementById('speech-bar').textContent = '🔊 ' + text;
+    }
+
+    // ── Build button overlays ──────────────────────────────────────────
+    function makeBtn(leftPct, topPct, wPct, hPct, word, id) {
+      const btn = document.createElement('button');
+      btn.className = 'cell';
+      btn.dataset.id = id;
+      btn.style.left   = leftPct.toFixed(3) + '%';
+      btn.style.top    = topPct.toFixed(3)  + '%';
+      btn.style.width  = wPct.toFixed(3)    + '%';
+      btn.style.height = hPct.toFixed(3)    + '%';
+      btn.title = word;
+      btn.addEventListener('click', () => {
+        speak(word);
+        btn.classList.add('speaking');
+        setTimeout(() => btn.classList.remove('speaking'), 800);
+      });
+      return btn;
+    }
+
+    const overlay = document.getElementById('overlay');
+
+    // Build all 7×12 grid buttons
+    for (let r = 0; r < vocab.length; r++) {
+      for (let c = 0; c < vocab[r].length; c++) {
+        const leftPct = colSep[c]                    / IW * 100;
+        const topPct  = rowSep[r]                    / IH * 100;
+        const wPct    = (colSep[c + 1] - colSep[c]) / IW * 100;
+        const hPct    = (rowSep[r + 1] - rowSep[r]) / IH * 100;
+        overlay.appendChild(makeBtn(leftPct, topPct, wPct, hPct, vocab[r][c], `r${r}c${c}`));
+      }
+    }
+
+    // ── Onboarding steps ───────────────────────────────────────────────
+    function ids(r, cStart, cEnd) {
+      const out = [];
+      for (let c = cStart; c <= cEnd; c++) out.push(`r${r}c${c}`);
+      return out;
+    }
+
+    const steps = [
+      {
+        title: "Welcome to LAMP Words for Life",
+        body:  "LAMP Words for Life (WFL) is an AAC vocabulary system built on <strong>motor learning</strong> — every word lives in the same spot on every page, so users build reliable muscle memory to communicate faster and more independently. Let's explore how this board is organised.",
+        highlight: [],
+      },
+      {
+        title: "🧭 Navigation Toolbar",
+        body:  "The <strong>top row</strong> holds navigation controls: <em>Back, Home, Clear, Topics, Core Words, Quick Chat</em>, and more. These let the user move between pages, clear the output display, or jump to the keyboard — essential for managing a complex vocabulary system.",
+        highlight: ids(0, 0, 11),
+      },
+      {
+        title: "🔵 Pronouns",
+        body:  "Row 2 contains the <strong>personal pronouns</strong>: <em>I, you, he, she, it, we, they, who</em>, plus possessives <em>my, your, his, her</em>. In LAMP WFL, pronouns always sit in the same motor position so users can reach them without looking — just like touch-typing.",
+        highlight: ids(1, 0, 11),
+      },
+      {
+        title: "🔴 Core Verbs",
+        body:  "The left side of row 3 holds the most essential <strong>action verbs</strong>: <em>want, like, go</em>. These unlock functional communication immediately — a learner's first sentences often combine pronoun + verb: <em>"I want"</em>, <em>"I go"</em>, <em>"you like"</em>.",
+        highlight: ids(2, 0, 2),
+      },
+      {
+        title: "🟢 Descriptors & Prepositions",
+        body:  "The right portion of row 3 adds <strong>describing words and location words</strong>: <em>good, big, more, little, different, in, out, up, down</em>. These expand meaning dramatically — users can now say <em>"I want more"</em>, <em>"go in"</em>, or <em>"big dog"</em>.",
+        highlight: ids(2, 3, 11),
+      },
+      {
+        title: "🟠 Action & Activity Verbs",
+        body:  "Rows 4 and 5 are packed with <strong>verbs for daily life</strong>: <em>get, have, make, feel, think, help, stop, play, eat, drink, look, open</em>. These cover everything from requesting food to expressing feelings — core vocabulary for rich, spontaneous communication.",
+        highlight: [...ids(3, 0, 11), ...ids(4, 0, 5)],
+      },
+      {
+        title: "💬 Social Words & Connectors",
+        body:  "Row 6 has vital <strong>social vocabulary</strong>: <em>yes, no, please, thank you, here, there</em>, plus small but powerful connectors: <em>on, off, with, to, not</em>. Quick-access social words help users join conversations, respond politely, and signal needs instantly.",
+        highlight: ids(5, 0, 11),
+      },
+      {
+        title: "✅ Explore Freely",
+        body:  "Tour complete! Click any cell to hear it spoken aloud — just as a real LAMP WFL user would experience it. Notice how logical groupings across rows help users build <strong>word-combination fluency</strong> over time. Try building a sentence: pronoun + verb + descriptor!",
+        highlight: [],
+        last: true,
+      },
+    ];
+
+    let step = 0;
+    const TOTAL = steps.length;
+
+    // Build dots
+    const dotsEl = document.getElementById('dots');
+    for (let i = 0; i < TOTAL; i++) {
+      const d = document.createElement('span');
+      d.className = 'dot' + (i === 0 ? ' active' : '');
+      dotsEl.appendChild(d);
+    }
+
+    function showStep(s) {
+      const st = steps[s];
+      document.getElementById('ob-title').textContent = st.title;
+      document.getElementById('ob-body').innerHTML   = st.body;
+      document.getElementById('ob-next').textContent  = st.last ? '🎉 Explore!' : 'Next →';
+
+      // Update dots
+      dotsEl.querySelectorAll('.dot').forEach((d, i) => {
+        d.classList.toggle('active', i === s);
+      });
+
+      // Highlight cells
+      document.querySelectorAll('.cell').forEach(btn => {
+        btn.classList.toggle('highlight', st.highlight.includes(btn.dataset.id));
+      });
+
+      // Last step — remove onboarding and hide panel
+      if (st.last) {
+        document.body.classList.remove('onboarding');
+        document.getElementById('ob-panel').style.display = 'none';
+        document.getElementById('speech-bar').textContent = 'Click any cell to hear it spoken aloud';
+      }
+    }
+
+    document.getElementById('ob-next').addEventListener('click', () => {
+      step++;
+      if (step < TOTAL) showStep(step);
+    });
+
+    showStep(0);
+  </script>
+</body>
+</html>
