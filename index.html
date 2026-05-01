@@ -6,13 +6,15 @@
   <title>Cole's Page</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #fff; transition: background 0.3s; }
+    body { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background: #fff; transition: background 0.3s; gap: 20px; padding: 20px; }
     canvas { border: 1px solid #ccc; }
-    button { margin-top: 20px; padding: 12px 32px; font-size: 16px; cursor: pointer; border: none; border-radius: 6px; background: #333; color: #fff; }
+    img { width: 400px; height: 300px; object-fit: cover; border-radius: 8px; }
+    button { padding: 12px 32px; font-size: 16px; cursor: pointer; border: none; border-radius: 6px; background: #333; color: #fff; }
     button:hover { background: #555; }
   </style>
 </head>
 <body>
+  <img src="https://picsum.photos/400/300" alt="Random image">
   <canvas id="c" width="400" height="300"></canvas>
   <button id="btn">Click me</button>
   <script>
