@@ -131,13 +131,13 @@
   <script>
     // ── Image & grid constants ────────────────────────────────────────────────
     const IW = 2387, IH = 1642;
-    const GRID_TOP = 148;   // px from top where grid starts
+    const GRID_TOP = 177;   // px from top where grid starts (nav bar ends ~y=175)
     const ROWS = 6, COLS = 10;
-    const ROW_H = 232;      // px per row
+    const ROW_H = 243.3;    // px per row ((1637-177)/6)
     const COL_W = IW / COLS; // 238.7px per col = exactly 10%
 
-    const gridTopPct = (GRID_TOP / IH * 100);   // 9.013%
-    const rowHPct    = (ROW_H / IH * 100);       // 14.129%
+    const gridTopPct = (GRID_TOP / IH * 100);   // 10.780%
+    const rowHPct    = (ROW_H / IH * 100);       // 14.819%
     const colWPct    = 100 / COLS;               // 10%
 
     // ── Vocabulary grid [row][col] ────────────────────────────────────────────
