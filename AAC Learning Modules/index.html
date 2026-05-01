@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AAC Core Board</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #1a1a2e;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+      gap: 12px;
+    }
+
+    h1 { color: #fff; font-size: 1.2rem; letter-spacing: 0.02em; }
+
+    #board-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 960px;
+      user-select: none;
+    }
+
+    #board-img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    #overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+    }
+
+    /* Transparent interactive buttons */
+    .cell {
+      position: absolute;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background 0.08s ease;
+      padding: 0;
+    }
+
+    .cell:hover  { background: rgba(255,255,255,0.18); }
+    .cell:active { background: rgba(255,255,0,0.30); }
+    .cell.flash  { background: rgba(255,220,0,0.45); }
+
+    /* Onboarding */
+    body.onboarding .cell { pointer-events: none; }
+    body.onboarding .cell.highlighted { pointer-events: auto; }
+
+    body.onboarding #overlay::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    body.onboarding .cell.highlighted {
+      z-index: 2;
+      animation: glow 1.4s ease-in-out infinite;
+    }
+
+    @keyframes glow {
+      0%,100% { box-shadow: 0 0 0 3px rgba(255,255,255,0.95), 0 0 14px rgba(255,255,255,0.5); background: rgba(255,255,255,0.15); }
+      50%      { box-shadow: 0 0 0 6px rgba(255,255,255,0.4),  0 0 28px rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); }
+    }
+
+    /* Onboarding panel */
+    #ob-panel {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      border-radius: 14px;
+      padding: 20px 26px;
+      max-width: 480px;
+      width: 92%;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.55);
+      z-index: 300;
+      text-align: center;
+    }
+
+    #ob-counter { font-size: 0.78rem; color: #999; margin-bottom: 8px; }
+
+    #ob-dots { display: flex; gap: 6px; justify-content: center; margin-bottom: 12px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #ddd; transition: background 0.2s; }
+    .dot.active { background: #1565C0; }
+
+    #ob-panel h2 { font-size: 1.05rem; color: #111; margin-bottom: 8px; }
+    #ob-panel p  { font-size: 0.9rem;  color: #444; line-height: 1.55; margin-bottom: 16px; }
+
+    #btn-next {
+      background: #1565C0; color: #fff; border: none;
+      padding: 10px 28px; border-radius: 8px;
+      font-size: 0.92rem; font-weight: 700; cursor: pointer;
+    }
+    #btn-next:hover { background: #0D47A1; }
+
+    #speech-bar { font-size: 0.9rem; color: #aaa; min-height: 1.4em; text-align: center; }
+  </style>
+</head>
+
+<body class="onboarding">
+  <h1>AAC Core Board</h1>
+
+  <div id="board-wrap">
+    <img id="board-img" src="coreboard.png" alt="AAC 77 Symbol Core Board" draggable="false">
+    <div id="overlay"></div>
+  </div>
+
+  <div id="speech-bar">Complete the tour to start exploring.</div>
+
+  <!-- Onboarding panel -->
+  <div id="ob-panel">
+    <div id="ob-counter"></div>
+    <div id="ob-dots"></div>
+    <h2 id="ob-title"></h2>
+    <p  id="ob-desc"></p>
+    <button id="btn-next">Next →</button>
+  </div>
+
+  <script>
+    // ── Image dimensions (px) ─────────────────────────────────────────────────
+    const IW = 1248, IH = 909;
+    const MAIN_H = 795;   // main 7-row grid height
+    const COLS = 11, ROWS = 7;
+
+    const cellW = 100 / COLS;                        // % width per col
+    const cellH = (MAIN_H / IH) * (100 / ROWS);     // % height per row
+
+    // ── Vocabulary ─────────────────────────────────────────────────────────
+    // TTS text uses ", " between alternatives for natural reading
+    const grid = [
+      // Row 1
+      ["I, me, my","it","who","what","am, is, are, be","when","be careful","all","some","that","this"],
+      // Row 2
+      ["he, she","we, they, us","not, don't","come","do, does, did","again","now, it's time","how","why","finished, all done","problem"],
+      // Row 3
+      ["you, your","drink","eat, taste","feel","get, got","late, later","ready","all gone","bad","big","clean"],
+      // Row 4
+      ["give, gave","go","hear, listen","help","like","where","away","cold","different","dirty","fast"],
+      // Row 5
+      ["look, see","make, made","open, close","play","put","here","there","good","happy","hot","little"],
+      // Row 6
+      ["read","say, tell","sit","stand","stop","in","out","more","sad","same","sick, sore"],
+      // Row 7
+      ["take","turn","wait","want","work","up","down","on","off","silly","slow"],
+    ];
+
+    // Bottom row cells (pixel x coordinates, from image analysis)
+    const bottomRow = [
+      { word:"yes",    x1:206,  x2:313  },
+      { word:"one",    x1:324,  x2:434  },
+      { word:"two",    x1:443,  x2:553  },
+      { word:"three",  x1:562,  x2:672  },
+      { word:"four",   x1:681,  x2:791  },
+      { word:"five",   x1:800,  x2:911  },
+      { word:"no",     x1:924,  x2:1030 },
+      { word:"toilet", x1:1063, x2:1169 },
+    ];
+
+    // Colour categories for onboarding highlighting
+    // Map each cell [row][col] to a category string
+    const catMap = {
+      yellow: [[0,0],[0,1],[1,0],[1,1],[2,0]],           // pronouns (yellow bg)
+      pink:   [[0,2],[0,3],[0,5],[1,7],[1,8]],            // social/questions (pink bg)
+      orange: [[2,1],[2,2],[2,3],[2,4],[2,5],[2,6],[2,7],[3,0],[3,1],[3,2],[3,3],[3,4],[4,0],[4,1],[4,2],[4,3],[4,4],[5,0],[5,1],[5,2],[5,3],[5,4],[6,0],[6,1],[6,2],[6,3],[6,4]], // verbs (green bg)
+      purple: [[3,5],[3,6],[4,5],[4,6],[5,5],[5,6],[6,5],[6,6],[6,7],[6,8]],  // prepositions (purple bg)
+      blue:   [[2,8],[2,9],[2,10],[3,7],[3,8],[3,9],[3,10],[4,7],[4,8],[4,9],[4,10],[5,7],[5,8],[5,9],[5,10],[6,9],[6,10]], // descriptors (blue bg)
+    };
+
+    // ── Build overlay buttons ─────────────────────────────────────────────
+    const overlay = document.getElementById('overlay');
+
+    function makeBtn(word, style, cat) {
+      const btn = document.createElement('button');
+      btn.className = 'cell';
+      if (cat) btn.dataset.cat = cat;
+      Object.assign(btn.style, style);
+      btn.setAttribute('aria-label', word);
+      btn.addEventListener('click', () => speak(word, btn));
+      return btn;
+    }
+
+    // Main 7×11 grid
+    grid.forEach((row, r) => {
+      row.forEach((word, c) => {
+        // Determine category for onboarding
+        let cat = 'other';
+        for (const [catName, cells] of Object.entries(catMap)) {
+          if (cells.some(([cr,cc]) => cr === r && cc === c)) { cat = catName; break; }
+        }
+        overlay.appendChild(makeBtn(word, {
+          left:   `${(c * cellW).toFixed(3)}%`,
+          top:    `${(r * cellH).toFixed(3)}%`,
+          width:  `${cellW.toFixed(3)}%`,
+          height: `${cellH.toFixed(3)}%`,
+        }, cat));
+      });
+    });
+
+    // Bottom row
+    const btmTop = (MAIN_H / IH * 100).toFixed(3) + '%';
+    const btmH   = ((IH - MAIN_H) / IH * 100).toFixed(3) + '%';
+    bottomRow.forEach(({word, x1, x2}) => {
+      overlay.appendChild(makeBtn(word, {
+        left:   `${(x1 / IW * 100).toFixed(3)}%`,
+        top:    btmTop,
+        width:  `${((x2 - x1) / IW * 100).toFixed(3)}%`,
+        height: btmH,
+      }, 'bottom'));
+    });
+
+    // ── Speech ────────────────────────────────────────────────────────────
+    const speechBar = document.getElementById('speech-bar');
+    function speak(word, btn) {
+      window.speechSynthesis.cancel();
+      const utt = new SpeechSynthesisUtterance(word);
+      utt.rate = 0.88;
+      window.speechSynthesis.speak(utt);
+      speechBar.textContent = `🔊  "${word}"`;
+      btn.classList.add('flash');
+      setTimeout(() => btn.classList.remove('flash'), 250);
+    }
+
+    // ── Onboarding ────────────────────────────────────────────────────────
+    const steps = [
+      { title: "Welcome to the Core Board",
+        desc:  "This is the AAC Core Board — a communication tool that helps people who have difficulty speaking. Each symbol represents a word or phrase. Let's take a quick tour of how the board is organised.",
+        hl: null },
+      { title: "🟡 Yellow — Pronouns & People",
+        desc:  "The yellow cells are pronouns and people words: 'I / me / my', 'you / your', 'he / she', 'we / they / us'. These refer to people and appear in almost every sentence.",
+        hl: 'yellow' },
+      { title: "🩷 Pink — Questions & Social Words",
+        desc:  "Pink cells include question words like 'who', 'what', 'when', 'how', and 'why', as well as social words like 'finished' and 'be careful'. These start conversations and signal needs.",
+        hl: 'pink' },
+      { title: "🟢 Green — Action Words (Verbs)",
+        desc:  "Green cells are verbs — action words like 'go', 'help', 'eat', 'play', and 'stop'. Verbs are the engine of communication; they express what the user wants to do.",
+        hl: 'orange' },
+      { title: "🟣 Purple — Location & Position Words",
+        desc:  "Purple cells are location and position words: 'where', 'here', 'there', 'in', 'out', 'up', 'down', 'on', 'off'. These describe where things are or where to go.",
+        hl: 'purple' },
+      { title: "🔵 Blue — Describing Words",
+        desc:  "Blue cells are descriptors — words like 'good', 'bad', 'big', 'hot', 'sad', 'different'. These add detail and context to what the user is communicating.",
+        hl: 'blue' },
+      { title: "You're ready! 🎉",
+        desc:  "Now explore the board yourself. Click any symbol to hear it spoken aloud — just as an AAC device user would experience it.",
+        hl: null },
+    ];
+
+    const dotsEl    = document.getElementById('ob-dots');
+    const titleEl   = document.getElementById('ob-title');
+    const descEl    = document.getElementById('ob-desc');
+    const counterEl = document.getElementById('ob-counter');
+    const nextBtn   = document.getElementById('btn-next');
+    const panel     = document.getElementById('ob-panel');
+
+    steps.forEach((_, i) => {
+      const d = document.createElement('div');
+      d.className = 'dot';
+      dotsEl.appendChild(d);
+    });
+
+    let step = 0;
+
+    function showStep(i) {
+      const s = steps[i];
+      titleEl.textContent   = s.title;
+      descEl.textContent    = s.desc;
+      counterEl.textContent = `Step ${i + 1} of ${steps.length}`;
+      nextBtn.textContent   = i === steps.length - 1 ? 'Start Exploring →' : 'Next →';
+      document.querySelectorAll('.dot').forEach((d, idx) => d.classList.toggle('active', idx === i));
+      document.querySelectorAll('.cell').forEach(btn =>
+        btn.classList.toggle('highlighted', s.hl !== null && btn.dataset.cat === s.hl)
+      );
+    }
+
+    nextBtn.addEventListener('click', () => {
+      step++;
+      if (step >= steps.length) {
+        document.body.classList.remove('onboarding');
+        panel.style.display = 'none';
+        document.querySelectorAll('.cell').forEach(b => b.classList.remove('highlighted'));
+        speechBar.textContent = 'Click any symbol to hear it spoken aloud.';
+        return;
+      }
+      showStep(step);
+    });
+
+    showStep(0);
+  </script>
+</body>
+</html>
