@@ -145,33 +145,32 @@
     // ── Image dimensions ──────────────────────────────────────────
     const IW = 640, IH = 480;
 
-    // ── Grid layout (% of IW / IH) ────────────────────────────────
-    // 4 rows of cells (y≈159–394), 5 columns (x≈48–595)
+    // ── Grid layout — 4 rows × 8 cols (GO Talk 32+) ──────────────
+    // Pixel boundaries verified against 640×480 image
     const rows = [
-      { top: 159/IH*100, h: 45/IH*100 },   // Row 0
-      { top: 221/IH*100, h: 45/IH*100 },   // Row 1
-      { top: 285/IH*100, h: 45/IH*100 },   // Row 2
-      { top: 349/IH*100, h: 46/IH*100 },   // Row 3
+      { top: 157/IH*100, h: 53/IH*100 },   // Row 0: y=157..210
+      { top: 220/IH*100, h: 53/IH*100 },   // Row 1: y=220..273
+      { top: 283/IH*100, h: 54/IH*100 },   // Row 2: y=283..337
+      { top: 347/IH*100, h: 61/IH*100 },   // Row 3: y=347..408
     ];
 
     const cols = [
-      { left:  48/IW*100, w: 109/IW*100 },  // Col 0
-      { left: 157/IW*100, w: 109/IW*100 },  // Col 1
-      { left: 266/IW*100, w: 109/IW*100 },  // Col 2
-      { left: 375/IW*100, w: 110/IW*100 },  // Col 3
-      { left: 485/IW*100, w: 110/IW*100 },  // Col 4
+      { left:  31/IW*100, w: 68/IW*100 },  // Col 0
+      { left: 101/IW*100, w: 69/IW*100 },  // Col 1
+      { left: 172/IW*100, w: 69/IW*100 },  // Col 2
+      { left: 242/IW*100, w: 70/IW*100 },  // Col 3
+      { left: 314/IW*100, w: 69/IW*100 },  // Col 4
+      { left: 384/IW*100, w: 69/IW*100 },  // Col 5
+      { left: 454/IW*100, w: 69/IW*100 },  // Col 6
+      { left: 524/IW*100, w: 70/IW*100 },  // Col 7
     ];
 
-    // ── Flat vocabulary: 4 rows × 5 cols ─────────────────────────
-    // Row 0 — Social starters
-    // Row 1 — Core wants & needs
-    // Row 2 — Feelings & people
-    // Row 3 — Actions & places
+    // ── Vocabulary: 4 rows × 8 cols — read from GO Talk 32+ image ─
     const vocab = [
-      ["hello",    "yes",       "no",        "please",    "thank you"],
-      ["I want",   "I need",    "help",       "more",      "all done"],
-      ["happy",    "sad",       "hurts",      "tired",     "my turn"],
-      ["go",       "stop",      "eat",        "drink",     "bathroom"],
+      ["Hello",  "please", "clean",  "go",     "hot drink", "jacket",     "sweater",    "person"   ],
+      ["child",  "eat",    "drive",  "people", "water",     "books",      "berries",    "teen"     ],
+      ["dog",    "gloves", "cup",    "hat",    "clock",     "lunch",      "read",       "calculator"],
+      ["Let's",  "drink",  "messy",  "snack",  "salad",     "jewelry",    "man",        "Good-Bye" ],
     ];
 
     // ── Speech ───────────────────────────────────────────────────
@@ -216,43 +215,43 @@
     // ── Onboarding steps ─────────────────────────────────────────
     const steps = [
       {
-        title: "Welcome to GO Talk",
-        body:  "The <strong>GO Talk</strong> is a dedicated AAC (Augmentative and Alternative Communication) <em>speech-generating device</em> — a standalone gadget built for simplicity and reliability in any environment: classroom, home, or clinic.",
+        title: "Welcome to GO Talk 32+",
+        body:  "The <strong>GO Talk 32+</strong> is a dedicated AAC (Augmentative and Alternative Communication) <em>speech-generating device</em> — a standalone gadget built for simplicity and reliability in any environment: classroom, home, or clinic.",
         highlight: [],
       },
       {
-        title: "📦 Simple Button Grid",
-        body:  "The board has <strong>20 buttons</strong> arranged in a 4&times;5 grid. Each button, when pressed, plays a spoken word or phrase. The layout is fixed and consistent, so users can build reliable muscle memory over time.",
+        title: "📦 32-Button Grid",
+        body:  "The board has <strong>32 buttons</strong> arranged in a 4&times;8 grid. Each button, when pressed, plays a spoken word or phrase. The layout is fixed — printed paper overlays label each button, and different overlays can swap in different vocabulary sets.",
         highlight: allIds(),
       },
       {
-        title: "👋 Row 1 — Social Words",
-        body:  "The <strong>top row</strong> holds everyday social words: <em>hello, yes, no, please, thank you</em>. These are the most-used communication starters and are always in the same position.",
+        title: "👋 Row 1 — Greetings &amp; Basics",
+        body:  "The <strong>top row</strong> holds everyday starters: <em>Hello, please, clean, go, hot drink, jacket, sweater, person</em>. These cover greetings, requests, and common daily objects that come up throughout the day.",
         highlight: rowIds(0),
       },
       {
-        title: "🙏 Row 2 — Wants &amp; Needs",
-        body:  "The <strong>second row</strong> covers core wants and needs: <em>I want, I need, help, more, all done</em>. These are fundamental for expressing basic requests and are often among the first words taught.",
+        title: "🍽️ Row 2 — People &amp; Food",
+        body:  "The <strong>second row</strong> covers people and mealtimes: <em>child, eat, drive, people, water, books, berries, teen</em>. Core communication for daily routines — from meals to activities.",
         highlight: rowIds(1),
       },
       {
-        title: "😊 Row 3 — Feelings &amp; People",
-        body:  "The <strong>third row</strong> helps users express how they feel and take turns: <em>happy, sad, hurts, tired, my turn</em>. Emotional vocabulary is key for self-advocacy and participation.",
+        title: "🐕 Row 3 — Objects &amp; Activities",
+        body:  "The <strong>third row</strong> includes everyday objects and activities: <em>dog, gloves, cup, hat, clock, lunch, read, calculator</em>. These support conversations about daily tasks and the environment.",
         highlight: rowIds(2),
       },
       {
-        title: "🏃 Row 4 — Actions &amp; Places",
-        body:  "The <strong>bottom row</strong> covers essential actions and locations: <em>go, stop, eat, drink, bathroom</em>. These support movement, routine transitions, and daily care needs.",
+        title: "🥗 Row 4 — Actions &amp; Farewells",
+        body:  "The <strong>bottom row</strong> rounds out the board: <em>Let&rsquo;s, drink, messy, snack, salad, jewelry, man, Good-Bye</em>. Social connectors like &ldquo;Let&rsquo;s&rdquo; help users initiate activities, while &ldquo;Good-Bye&rdquo; closes conversations naturally.",
         highlight: rowIds(3),
       },
       {
         title: "🔊 How to Use",
-        body:  "Click any button on the board to hear it spoken aloud. In a real GO Talk device, pressing the cell triggers the built-in speaker. Practice saying a few words to get a feel for the communication rhythm.",
+        body:  "Click any button on the board to hear it spoken aloud. In a real GO Talk device, pressing the cell triggers the built-in speaker. Try a few — notice how the layout groups related words for easy access.",
         highlight: allIds(),
       },
       {
-        title: "🎉 You're Ready!",
-        body:  "Now explore the full board. Click any cell to hear what it says. Remember — consistent placement helps users build speed and confidence over time.",
+        title: "🎉 You&rsquo;re Ready!",
+        body:  "Now explore the full board. Click any cell to hear what it says. Staff can use this to understand what a GO Talk user is communicating when they press a button.",
         highlight: [],
         last: true,
       },

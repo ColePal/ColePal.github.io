@@ -150,22 +150,22 @@
     // Row pixel boundaries
     const rowSep = [13, 102, 191, 284, 375, 468, 558, 647];
 
-    // ── Vocabulary grid [row][col] — 7 rows × 12 cols ──────────────────
+    // ── Vocabulary grid [row][col] — 7 rows × 12 cols — read from image ──
     const vocab = [
-      // Row 0 — navigation toolbar
-      ["Back", "Home", "Clear", "Delete", "Recents", "Topics", "Core Words", "Quick Chat", "Keyboard", "Settings", "Help", "Favourites"],
-      // Row 1 — pronouns
-      ["I", "you", "he", "she", "it", "we", "they", "who", "my", "your", "his", "her"],
-      // Row 2 — core verbs (left) · descriptors (mid) · prepositions (right)
-      ["want", "like", "go", "good", "big", "more", "little", "different", "in", "out", "up", "down"],
-      // Row 3 — action & cognitive verbs
-      ["get", "have", "make", "do", "need", "feel", "think", "know", "say", "come", "put", "give"],
-      // Row 4 — everyday activity verbs
-      ["help", "stop", "play", "eat", "drink", "look", "turn", "open", "watch", "sleep", "work", "read"],
-      // Row 5 — social words & connectors
-      ["yes", "no", "please", "thank you", "here", "there", "on", "off", "with", "to", "for", "not"],
-      // Row 6 — question words & logical connectors
-      ["what", "where", "when", "why", "how", "again", "all", "some", "same", "bad", "and", "or"],
+      // Row 0 — concepts & descriptors
+      ["finished", "mine",  "little", "up",   "yes",  "good",  "some",  "no",    "down",  "out",  "off",  "bad"],
+      // Row 1 — pronouns, helping verb, social words
+      ["me",       "my",    "wear",   "am",   "please","that", "and",   "in",    "what",  "a",    "s",    "there"],
+      // Row 2 — pronouns, auxiliary verbs, grammar
+      ["I",        "we",    "are",    "is",   "were",  "was",  "on",    "to",    "spell", "an",   "the",  "end"],
+      // Row 3 — pronouns & core verbs
+      ["you",      "they",  "new",    "play", "like",  "work", "have",  "feel",  "read",  "more", "fast", "stop"],
+      // Row 4 — pronouns & action verbs
+      ["it",       "he",    "want",   "all",  "come",  "time", "do",    "go",    "get",   "big",  "color","help"],
+      // Row 5 — pronoun & verbs
+      ["she",      "look",  "slow",   "hear", "think", "right","said",  "live",  "love",  "follow","ride","put"],
+      // Row 6 — daily life verbs
+      ["clear",    "not",   "talk",   "sit",  "eat",   "find", "make",  "need",  "drink", "watch","turn", "sleep"],
     ];
 
     // ── TTS helper ─────────────────────────────────────────────────────
@@ -222,34 +222,39 @@
         highlight: [],
       },
       {
-        title: "🧭 Navigation Toolbar",
-        body:  "The <strong>top row</strong> holds navigation controls: <em>Back, Home, Clear, Topics, Core Words, Quick Chat</em>, and more. These let the user move between pages, clear the output display, or jump to the keyboard — essential for managing a complex vocabulary system.",
+        title: "🧩 Row 1 — Concepts &amp; Descriptors",
+        body:  "The <strong>top row</strong> holds key concepts and descriptors: <em>finished, mine, little, up, yes, good, some, no, down, out, off, bad</em>. These high-frequency words let users communicate completion, ownership, quantity, direction, and evaluation instantly.",
         highlight: ids(0, 0, 11),
       },
       {
-        title: "🔵 Pronouns",
-        body:  "Row 2 contains the <strong>personal pronouns</strong>: <em>I, you, he, she, it, we, they, who</em>, plus possessives <em>my, your, his, her</em>. In LAMP WFL, pronouns always sit in the same motor position so users can reach them without looking — just like touch-typing.",
+        title: "🔵 Row 2 — Pronouns &amp; Social Words",
+        body:  "Row 2 covers first-person pronouns and social connectors: <em>me, my, wear, am, please, that, and, in, what, a, s, there</em>. The orange cells (<em>a</em> and <em>s</em>) are morphological markers — they help build new word forms.",
         highlight: ids(1, 0, 11),
       },
       {
-        title: "🔴 Core Verbs",
-        body:  "The left side of row 3 holds the most essential <strong>action verbs</strong>: <em>want, like, go</em>. These unlock functional communication immediately — a learner's first sentences often combine pronoun + verb: <em>&ldquo;I want&rdquo;</em>, <em>&ldquo;I go&rdquo;</em>, <em>&ldquo;you like&rdquo;</em>.",
-        highlight: ids(2, 0, 2),
+        title: "🟣 Row 3 — Pronouns &amp; Auxiliary Verbs",
+        body:  "Row 3 adds more pronouns and helping verbs: <em>I, we, are, is, were, was, on, to, spell, an, the, end</em>. The green-highlighted verbs (<em>are, is, were, was</em>) are essential for forming sentences in any tense.",
+        highlight: ids(2, 0, 11),
       },
       {
-        title: "🟢 Descriptors & Prepositions",
-        body:  "The right portion of row 3 adds <strong>describing words and location words</strong>: <em>good, big, more, little, different, in, out, up, down</em>. These expand meaning dramatically — users can now say <em>&ldquo;I want more&rdquo;</em>, <em>&ldquo;go in&rdquo;</em>, or <em>&ldquo;big dog&rdquo;</em>.",
-        highlight: ids(2, 3, 11),
+        title: "🔴 Row 4 — You, They &amp; Core Verbs",
+        body:  "Row 4 introduces <em>you</em> and <em>they</em> alongside powerful verbs: <em>new, play, like, work, have, feel, read, more, fast, stop</em>. These enable rich sentence-building — try combining a pronoun from above with a verb here.",
+        highlight: ids(3, 0, 11),
       },
       {
-        title: "🟠 Action & Activity Verbs",
-        body:  "Rows 4 and 5 are packed with <strong>verbs for daily life</strong>: <em>get, have, make, feel, think, help, stop, play, eat, drink, look, open</em>. These cover everything from requesting food to expressing feelings — core vocabulary for rich, spontaneous communication.",
-        highlight: [...ids(3, 0, 11), ...ids(4, 0, 5)],
+        title: "🟠 Row 5 — It, He &amp; Action Verbs",
+        body:  "Row 5 covers <em>it</em> and <em>he</em> plus daily action verbs: <em>want, all, come, time, do, go, get, big, color, help</em>. These are the engine of LAMP WFL — most spontaneous communication relies on verbs from this row.",
+        highlight: ids(4, 0, 11),
       },
       {
-        title: "💬 Social Words & Connectors",
-        body:  "Row 6 has vital <strong>social vocabulary</strong>: <em>yes, no, please, thank you, here, there</em>, plus small but powerful connectors: <em>on, off, with, to, not</em>. Quick-access social words help users join conversations, respond politely, and signal needs instantly.",
+        title: "💬 Row 6 — She &amp; Expressive Verbs",
+        body:  "Row 6 adds <em>she</em> and expressive verbs: <em>look, slow, hear, think, right, said, live, love, follow, ride, put</em>. These richer verbs let users describe experiences, feelings, and relationships.",
         highlight: ids(5, 0, 11),
+      },
+      {
+        title: "🟡 Row 7 — Daily Life Actions",
+        body:  "The <strong>bottom row</strong> covers essential daily actions: <em>clear, not, talk, sit, eat, find, make, need, drink, watch, turn, sleep</em>. The <em>clear</em> button resets the display, <em>not</em> adds negation, and the rest support everyday routines.",
+        highlight: ids(6, 0, 11),
       },
       {
         title: "✅ Explore Freely",
