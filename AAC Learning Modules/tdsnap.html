@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TD Snap AAC Board</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #1a1a2e;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+      gap: 12px;
+    }
+
+    h1 { color: #fff; font-size: 1.1rem; }
+
+    .board-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    .board-wrap img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 8px;
+    }
+
+    .overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+    }
+
+    /* ── Cell buttons ─────────────────────────────────────────── */
+    .cell {
+      position: absolute;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background 0.15s, opacity 0.3s;
+      pointer-events: auto;
+    }
+
+    .cell:hover { background: rgba(255,255,255,0.25); }
+    .cell:active { background: rgba(255,255,255,0.45); }
+    .cell.speaking { background: rgba(255,220,0,0.35); }
+
+    /* Onboarding dim / highlight */
+    body.onboarding .cell { opacity: 0.15; pointer-events: none; }
+    body.onboarding .cell.highlight {
+      opacity: 1;
+      pointer-events: auto;
+      animation: glow 1.2s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow {
+      from { box-shadow: 0 0 6px 2px rgba(255,220,50,0.6); }
+      to   { box-shadow: 0 0 18px 6px rgba(255,220,50,0.9); }
+    }
+
+    /* Onboarding overlay dim */
+    body.onboarding .board-wrap::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      border-radius: 8px;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    body.onboarding .cell.highlight { z-index: 2; }
+
+    /* ── Onboarding panel ─────────────────────────────────────── */
+    #ob-panel {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      border-radius: 14px;
+      padding: 20px 24px;
+      max-width: 480px;
+      width: 92%;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      z-index: 200;
+    }
+
+    #ob-panel h2 { font-size: 1rem; margin-bottom: 8px; color: #1a1a2e; }
+    #ob-panel p  { font-size: 0.88rem; color: #444; line-height: 1.55; margin-bottom: 16px; }
+
+    .ob-footer { display: flex; align-items: center; justify-content: space-between; }
+    .dots { display: flex; gap: 5px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #ddd; transition: background 0.2s; }
+    .dot.active { background: #c47a1e; }
+
+    #ob-next {
+      background: #c47a1e;
+      color: #fff;
+      border: none;
+      padding: 9px 22px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    #ob-next:hover { background: #a86518; }
+
+    /* ── Speech bar ─────────────────────────────────────────── */
+    #speech-bar { font-size: 0.9rem; color: #aaa; min-height: 1.4em; text-align: center; }
+  </style>
+</head>
+<body class="onboarding">
+
+  <h1>TD Snap — QuickFires Board</h1>
+
+  <div class="board-wrap">
+    <img src="tdsnap.png" alt="TD Snap QuickFires AAC Board" draggable="false">
+    <div class="overlay" id="overlay"></div>
+  </div>
+
+  <p id="speech-bar">Complete the tour to explore the board</p>
+
+  <!-- Onboarding panel -->
+  <div id="ob-panel">
+    <h2 id="ob-title">Welcome to TD Snap</h2>
+    <p  id="ob-body">TD Snap is a powerful AAC (Augmentative and Alternative Communication) app. This "QuickFires" page gives quick access to common social phrases. Let's explore how it's organised.</p>
+    <div class="ob-footer">
+      <div class="dots" id="dots"></div>
+      <button id="ob-next">Next →</button>
+    </div>
+  </div>
+
+  <script>
+    // ── Image & grid constants ─────────────────────────────────────────
+    const IW = 825, IH = 675;
+
+    // Row pixel boundaries (from grey-band analysis)
+    const rowTops  = [145, 248, 354, 461, 568];
+    const rowBots  = [248, 354, 461, 568, 675];
+
+    // Column pixel boundaries for main grid (x=141..822)
+    const colLefts  = [141, 275, 413, 550, 688];
+    const colRights = [275, 413, 550, 688, 822];
+
+    // Left nav panel buttons (x=0..141, same row heights as grid)
+    const navPanelRight = 141;
+
+    // ── Vocabulary grid [row][col] ──────────────────────────────────────
+    const vocab = [
+      // Row 0 — yellow category navigation
+      ["Greeting and Social", "Personal Needs", "Feelings", "Questions", "My Phrases"],
+      // Row 1 — people & basic responses
+      ["Dad",    "Mum",          "Yes",          "No",   "Ok"],
+      // Row 2 — negation & evaluation
+      ["Don't",  "No way",       "Good",         "Bad",  "Really"],
+      // Row 3 — social interaction
+      ["Wait",   "I don't know", "Hey",          "Look", "Come here"],
+      // Row 4 — politeness
+      ["Please", "Thank you",    "Sorry",        "You're welcome", "Excuse me"],
+    ];
+
+    // Left nav panel labels (top→bottom)
+    const navLabels = ["Back", "Core Words", "QuickFires", "Topics", "Keyboard"];
+
+    // Category tags — used by onboarding step highlights
+    // format: "r{row}c{col}" for grid, "nav{row}" for left panel
+    const catMap = {
+      nav:        [...navLabels.map((_,i) => `nav${i}`)],
+      categories: vocab[0].map((_,c) => `r0c${c}`),
+      row1:       vocab[1].map((_,c) => `r1c${c}`),
+      row2:       vocab[2].map((_,c) => `r2c${c}`),
+      row3:       vocab[3].map((_,c) => `r3c${c}`),
+      row4:       vocab[4].map((_,c) => `r4c${c}`),
+    };
+
+    // ── TTS helper ─────────────────────────────────────────────────────
+    function speak(text) {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate = 0.88;
+      window.speechSynthesis.speak(u);
+      document.getElementById('speech-bar').textContent = '🔊 ' + text;
+    }
+
+    // ── Build button overlays ──────────────────────────────────────────
+    function makeBtn(leftPct, topPct, wPct, hPct, word, id) {
+      const btn = document.createElement('button');
+      btn.className = 'cell';
+      btn.dataset.id = id;
+      btn.style.left   = leftPct.toFixed(3) + '%';
+      btn.style.top    = topPct.toFixed(3)  + '%';
+      btn.style.width  = wPct.toFixed(3)    + '%';
+      btn.style.height = hPct.toFixed(3)    + '%';
+      btn.title = word;
+      btn.addEventListener('click', () => {
+        speak(word);
+        btn.classList.add('speaking');
+        setTimeout(() => btn.classList.remove('speaking'), 800);
+      });
+      return btn;
+    }
+
+    const overlay = document.getElementById('overlay');
+
+    // Left nav panel buttons
+    navLabels.forEach((label, i) => {
+      const topPct  = rowTops[i] / IH * 100;
+      const hPct    = (rowBots[i] - rowTops[i]) / IH * 100;
+      const wPct    = navPanelRight / IW * 100;
+      overlay.appendChild(makeBtn(0, topPct, wPct, hPct, label, `nav${i}`));
+    });
+
+    // Main 5×5 grid buttons
+    for (let r = 0; r < vocab.length; r++) {
+      for (let c = 0; c < vocab[r].length; c++) {
+        const leftPct = colLefts[c]  / IW * 100;
+        const topPct  = rowTops[r]   / IH * 100;
+        const wPct    = (colRights[c] - colLefts[c]) / IW * 100;
+        const hPct    = (rowBots[r]   - rowTops[r])  / IH * 100;
+        overlay.appendChild(makeBtn(leftPct, topPct, wPct, hPct, vocab[r][c], `r${r}c${c}`));
+      }
+    }
+
+    // ── Onboarding steps ───────────────────────────────────────────────
+    const steps = [
+      {
+        title: "Welcome to TD Snap",
+        body:  "TD Snap is a powerful AAC app used in real workplaces and schools. This is the <strong>QuickFires</strong> page — a quick-access board for common social phrases. Let's learn how it's structured.",
+        highlight: [],
+      },
+      {
+        title: "🟠 Left Navigation Panel",
+        body:  "The <strong>orange buttons</strong> on the left are navigation controls. They take you to other pages of the app: <em>Back, Core Words, QuickFires, Topics, and Keyboard</em>. These help the user move through the app quickly.",
+        highlight: catMap.nav,
+      },
+      {
+        title: "🟡 Category Navigation Row",
+        body:  "The top row (with a <strong>yellow background</strong>) contains <em>category pages</em>: Greeting & Social, Personal Needs, Feelings, Questions, and My Phrases. Clicking these navigates to a new board full of related vocabulary.",
+        highlight: catMap.categories,
+      },
+      {
+        title: "👨‍👩‍👧 People & Basic Responses",
+        body:  "Row 2 has commonly used responses and people words: <em>Dad, Mum, Yes, No, Ok</em>. These are high-frequency words a person might need many times a day.",
+        highlight: catMap.row1,
+      },
+      {
+        title: "🙅 Negation & Evaluation",
+        body:  "Row 3 covers expressing disagreement and opinions: <em>Don't, No way, Good, Bad, Really</em>. These help users express how they feel about something or push back on a suggestion.",
+        highlight: catMap.row2,
+      },
+      {
+        title: "👋 Social Interaction Phrases",
+        body:  "Row 4 has social phrases for engaging with others: <em>Wait, I don't know, Hey, Look, Come here</em>. These are crucial for managing conversation flow.",
+        highlight: catMap.row3,
+      },
+      {
+        title: "🙏 Polite Phrases",
+        body:  "The bottom row contains politeness vocabulary: <em>Please, Thank you, Sorry, You're welcome, Excuse me</em>. These help maintain respectful, natural interactions.",
+        highlight: catMap.row4,
+      },
+      {
+        title: "✅ Explore Freely",
+        body:  "You've completed the tour! Now click any button to hear it spoken aloud — just as a real AAC user would experience it. Try different cells and notice how each section serves a different communication need.",
+        highlight: [],
+        last: true,
+      },
+    ];
+
+    let step = 0;
+    const TOTAL = steps.length;
+
+    // Build dots
+    const dotsEl = document.getElementById('dots');
+    for (let i = 0; i < TOTAL; i++) {
+      const d = document.createElement('span');
+      d.className = 'dot' + (i === 0 ? ' active' : '');
+      dotsEl.appendChild(d);
+    }
+
+    function showStep(s) {
+      const st = steps[s];
+      document.getElementById('ob-title').textContent = st.title;
+      document.getElementById('ob-body').innerHTML   = st.body;
+      document.getElementById('ob-next').textContent  = st.last ? '🎉 Explore!' : 'Next →';
+
+      // Update dots
+      dotsEl.querySelectorAll('.dot').forEach((d, i) => {
+        d.classList.toggle('active', i === s);
+      });
+
+      // Highlight cells
+      document.querySelectorAll('.cell').forEach(btn => {
+        btn.classList.toggle('highlight', st.highlight.includes(btn.dataset.id));
+      });
+
+      // Hide panel + enable all cells if last step
+      if (st.last) {
+        document.body.classList.remove('onboarding');
+        document.getElementById('ob-panel').style.display = 'none';
+        document.getElementById('speech-bar').textContent = 'Click any cell to hear it spoken aloud';
+      }
+    }
+
+    document.getElementById('ob-next').addEventListener('click', () => {
+      step++;
+      if (step < TOTAL) showStep(step);
+    });
+
+    showStep(0);
+  </script>
+</body>
+</html>
