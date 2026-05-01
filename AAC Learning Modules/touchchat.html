@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TouchChat AAC Board</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #1a1a2e;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+      gap: 12px;
+    }
+
+    h1 { color: #fff; font-size: 1.2rem; letter-spacing: 0.02em; }
+
+    #board-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 960px;
+      user-select: none;
+    }
+
+    #board-img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    #overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+    }
+
+    .cell {
+      position: absolute;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background 0.08s ease;
+      padding: 0;
+    }
+
+    .cell:hover  { background: rgba(255,255,255,0.20); }
+    .cell:active { background: rgba(255,220,0,0.35); }
+    .cell.flash  { background: rgba(255,220,0,0.50); }
+
+    /* Onboarding */
+    body.onboarding .cell              { pointer-events: none; }
+    body.onboarding .cell.highlighted  { pointer-events: auto; }
+
+    body.onboarding #overlay::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    body.onboarding .cell.highlighted {
+      z-index: 2;
+      animation: glow 1.4s ease-in-out infinite;
+    }
+
+    @keyframes glow {
+      0%,100% { box-shadow: 0 0 0 3px rgba(255,255,255,0.95), 0 0 14px rgba(255,255,255,0.5); background: rgba(255,255,255,0.15); }
+      50%      { box-shadow: 0 0 0 6px rgba(255,255,255,0.4),  0 0 28px rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); }
+    }
+
+    #ob-panel {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      border-radius: 14px;
+      padding: 20px 26px;
+      max-width: 480px;
+      width: 92%;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.55);
+      z-index: 300;
+      text-align: center;
+    }
+
+    #ob-counter { font-size: 0.78rem; color: #999; margin-bottom: 8px; }
+    #ob-dots { display: flex; gap: 6px; justify-content: center; margin-bottom: 12px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #ddd; transition: background 0.2s; }
+    .dot.active { background: #c47a1e; }
+
+    #ob-panel h2 { font-size: 1.05rem; color: #111; margin-bottom: 8px; }
+    #ob-panel p  { font-size: 0.9rem;  color: #444; line-height: 1.55; margin-bottom: 16px; }
+
+    #btn-next {
+      background: #c47a1e; color: #fff; border: none;
+      padding: 10px 28px; border-radius: 8px;
+      font-size: 0.92rem; font-weight: 700; cursor: pointer;
+    }
+    #btn-next:hover { background: #a0621a; }
+
+    #speech-bar { font-size: 0.9rem; color: #aaa; min-height: 1.4em; text-align: center; }
+  </style>
+</head>
+
+<body class="onboarding">
+  <h1>TouchChat AAC Board</h1>
+
+  <div id="board-wrap">
+    <img id="board-img" src="touchchat.jpg" alt="TouchChat AAC Board" draggable="false">
+    <div id="overlay"></div>
+  </div>
+
+  <div id="speech-bar">Complete the tour to start exploring.</div>
+
+  <div id="ob-panel">
+    <div id="ob-counter"></div>
+    <div id="ob-dots"></div>
+    <h2 id="ob-title"></h2>
+    <p  id="ob-desc"></p>
+    <button id="btn-next">Next →</button>
+  </div>
+
+  <script>
+    // ── Image & grid constants ────────────────────────────────────────────────
+    const IW = 2387, IH = 1642;
+    const GRID_TOP = 148;   // px from top where grid starts
+    const ROWS = 6, COLS = 10;
+    const ROW_H = 232;      // px per row
+    const COL_W = IW / COLS; // 238.7px per col = exactly 10%
+
+    const gridTopPct = (GRID_TOP / IH * 100);   // 9.013%
+    const rowHPct    = (ROW_H / IH * 100);       // 14.129%
+    const colWPct    = 100 / COLS;               // 10%
+
+    // ── Vocabulary grid [row][col] ────────────────────────────────────────────
+    // TTS: use natural spoken forms
+    const vocab = [
+      // Row 1 — category navigation
+      ["ABC, 1 2 3", "People",  "Question", "Actions", "Social",  "Places", "Time",   "Groups",      "Describe",   "good"],
+      // Row 2
+      ["clear",      "I",       "me",       "to",      "come",    "that",   "a",      "the",         "and",        "more"],
+      // Row 3
+      ["button indicator","my", "is",       "eat",     "drink",   "finish", "get",    "all",         "at",         "Colors"],
+      // Row 4
+      ["extra words","it",      "can",      "go",      "help",    "open",   "put",    "in",          "for",        "on"],
+      // Row 5
+      ["here",       "you",     "do",       "like",    "play",    "read",   "stop",   "out",         "up",         "off"],
+      // Row 6
+      ["yes",        "your",    "no",       "want",    "take",    "tell",   "turn",   "watch",       "down",       "with"],
+    ];
+
+    // ── Category mapping for onboarding [row][col] → category ─────────────
+    // cat: 'nav' | 'yellow' | 'green' | 'pink' | 'teal' | 'special'
+    const cats = [
+      ["special","nav","nav","nav","nav","nav","nav","nav","nav","teal"],     // Row 1
+      ["special","yellow","yellow","teal","green","pink","pink","pink","teal","pink"], // Row 2
+      ["special","yellow","green","green","green","green","green","teal","teal","special"], // Row 3
+      ["special","yellow","green","green","green","green","green","teal","teal","teal"], // Row 4
+      ["teal","yellow","green","green","green","green","green","teal","teal","teal"],   // Row 5
+      ["special","yellow","special","green","green","green","green","green","teal","teal"], // Row 6
+    ];
+
+    // ── Build overlay buttons ─────────────────────────────────────────────────
+    const overlay = document.getElementById('overlay');
+
+    vocab.forEach((row, r) => {
+      row.forEach((word, c) => {
+        const btn = document.createElement('button');
+        btn.className   = 'cell';
+        btn.dataset.cat = cats[r][c];
+        btn.setAttribute('aria-label', word);
+        Object.assign(btn.style, {
+          left:   `${(c * colWPct).toFixed(3)}%`,
+          top:    `${(gridTopPct + r * rowHPct).toFixed(3)}%`,
+          width:  `${colWPct.toFixed(3)}%`,
+          height: `${rowHPct.toFixed(3)}%`,
+        });
+        btn.addEventListener('click', () => speak(word, btn));
+        overlay.appendChild(btn);
+      });
+    });
+
+    // ── Speech ────────────────────────────────────────────────────────────────
+    const speechBar = document.getElementById('speech-bar');
+    function speak(word, btn) {
+      window.speechSynthesis.cancel();
+      const utt = new SpeechSynthesisUtterance(word);
+      utt.rate = 0.88;
+      window.speechSynthesis.speak(utt);
+      speechBar.textContent = `🔊  "${word}"`;
+      btn.classList.add('flash');
+      setTimeout(() => btn.classList.remove('flash'), 250);
+    }
+
+    // ── Onboarding steps ─────────────────────────────────────────────────────
+    const steps = [
+      {
+        title: "Welcome to the TouchChat Board",
+        desc:  "This is a TouchChat AAC communication board. It's used by people who have difficulty speaking to express themselves. Every symbol is a word or action. Let's explore how it's organised.",
+        hl: null,
+      },
+      {
+        title: "🧭 Navigation Row — Topic Categories",
+        desc:  "The top row contains category buttons: PEOPLE, QUESTION, ACTIONS, SOCIAL, PLACES, TIME, GROUPS, and DESCRIBE. On a real device, tapping these opens a sub-page with more words on that topic.",
+        hl: "nav",
+      },
+      {
+        title: "🟡 Yellow — Pronouns",
+        desc:  "Yellow cells are pronouns — 'I', 'me', 'my', 'it', 'you', 'your'. These refer to people and appear in almost every sentence a user builds.",
+        hl: "yellow",
+      },
+      {
+        title: "🟢 Green — Action Words (Verbs)",
+        desc:  "Green cells are verbs and action words: 'come', 'eat', 'drink', 'go', 'help', 'play', 'stop', 'want', and many more. These are the most frequently used words for expressing needs and activities.",
+        hl: "green",
+      },
+      {
+        title: "🩷 Pink — Connector & Determiner Words",
+        desc:  "Pink cells are connecting words and determiners: 'that', 'a', 'the', 'more'. These glue sentences together and help give context to what the user is communicating.",
+        hl: "pink",
+      },
+      {
+        title: "🩵 Teal — Functional & Positional Words",
+        desc:  "Teal cells are functional words: 'and', 'all', 'at', 'in', 'for', 'on', 'here', 'out', 'up', 'off', 'down', 'with'. These describe location, direction, and quantity.",
+        hl: "teal",
+      },
+      {
+        title: "⚙️ Special Function Cells",
+        desc:  "'Yes' and 'No' give quick confirmations. 'Clear' removes the current sentence. 'ABC 123' opens the keyboard. 'Extra Words' and 'Colors' open vocabulary sub-pages.",
+        hl: "special",
+      },
+      {
+        title: "You're ready! 🎉",
+        desc:  "Now explore the board yourself. Click any symbol to hear it spoken aloud — just as a TouchChat user would experience it.",
+        hl: null,
+      },
+    ];
+
+    // Build UI
+    const dotsEl    = document.getElementById('ob-dots');
+    const titleEl   = document.getElementById('ob-title');
+    const descEl    = document.getElementById('ob-desc');
+    const counterEl = document.getElementById('ob-counter');
+    const nextBtn   = document.getElementById('btn-next');
+    const panel     = document.getElementById('ob-panel');
+
+    steps.forEach(() => {
+      const d = document.createElement('div');
+      d.className = 'dot';
+      dotsEl.appendChild(d);
+    });
+
+    let step = 0;
+
+    function showStep(i) {
+      const s = steps[i];
+      titleEl.textContent   = s.title;
+      descEl.textContent    = s.desc;
+      counterEl.textContent = `Step ${i + 1} of ${steps.length}`;
+      nextBtn.textContent   = i === steps.length - 1 ? 'Start Exploring →' : 'Next →';
+      document.querySelectorAll('.dot').forEach((d, idx) => d.classList.toggle('active', idx === i));
+      document.querySelectorAll('.cell').forEach(btn =>
+        btn.classList.toggle('highlighted', s.hl !== null && btn.dataset.cat === s.hl)
+      );
+    }
+
+    nextBtn.addEventListener('click', () => {
+      step++;
+      if (step >= steps.length) {
+        document.body.classList.remove('onboarding');
+        panel.style.display = 'none';
+        document.querySelectorAll('.cell').forEach(b => b.classList.remove('highlighted'));
+        speechBar.textContent = 'Click any symbol to hear it spoken aloud.';
+        return;
+      }
+      showStep(step);
+    });
+
+    showStep(0);
+  </script>
+</body>
+</html>

@@ -3,24 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cole's Learning Modules</title>
+  <title>AAC Learning Modules</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Segoe UI', Arial, sans-serif; background: #1a1a2e; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px; }
-    h1 { color: #fff; font-size: 1.6rem; margin-bottom: 32px; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #1a1a2e; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px; gap: 24px; }
+    h1 { color: #fff; font-size: 1.6rem; }
+    p.subtitle { color: #aaa; font-size: 0.9rem; }
     .modules { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; }
-    .module-card { background: #16213e; border-radius: 12px; padding: 24px 32px; color: #fff; text-decoration: none; min-width: 220px; text-align: center; border: 1px solid #0f3460; transition: background 0.2s, transform 0.15s; }
+    .module-card { background: #16213e; border-radius: 12px; padding: 28px 32px; color: #fff; text-decoration: none; min-width: 220px; max-width: 260px; text-align: center; border: 1px solid #0f3460; transition: background 0.2s, transform 0.15s; }
     .module-card:hover { background: #0f3460; transform: translateY(-3px); }
-    .module-card h2 { font-size: 1.05rem; margin-bottom: 8px; }
-    .module-card p { font-size: 0.82rem; color: #aaa; }
+    .module-card .icon { font-size: 2.4rem; margin-bottom: 12px; }
+    .module-card h2 { font-size: 1rem; margin-bottom: 8px; }
+    .module-card p { font-size: 0.8rem; color: #aaa; line-height: 1.5; }
   </style>
 </head>
 <body>
-  <h1>Learning Modules</h1>
+  <h1>AAC Learning Modules</h1>
+  <p class="subtitle">Interactive modules to help staff understand AAC communication devices.</p>
   <div class="modules">
     <a class="module-card" href="AAC Learning Modules/">
-      <h2>AAC Core Board</h2>
-      <p>Explore the 77 Symbol Core Board and learn how AAC devices work.</p>
+      <div class="icon">🗂️</div>
+      <h2>77 Symbol Core Board</h2>
+      <p>Explore the Core Board and learn how AAC symbol-based communication works.</p>
+    </a>
+    <a class="module-card" href="AAC Learning Modules/touchchat.html">
+      <div class="icon">💬</div>
+      <h2>TouchChat Board</h2>
+      <p>Explore the TouchChat AAC app layout and understand its colour-coded vocabulary sections.</p>
     </a>
   </div>
 </body>
