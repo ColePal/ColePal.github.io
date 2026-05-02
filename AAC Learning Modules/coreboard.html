@@ -191,7 +191,8 @@
       if (cat) btn.dataset.cat = cat;
       Object.assign(btn.style, style);
       btn.setAttribute('aria-label', word);
-      btn.addEventListener('click', () => speak(word, btn));
+      const spokenWord = cat === 'yellow' ? word.split(',')[0].trim() : word;
+      btn.addEventListener('click', () => speak(spokenWord, btn));
       return btn;
     }
 
