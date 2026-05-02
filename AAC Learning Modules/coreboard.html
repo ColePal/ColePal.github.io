@@ -114,14 +114,10 @@
 </head>
 
 <body class="onboarding">
-  <h1>AAC Core Board</h1>
-
   <div id="board-wrap">
     <img id="board-img" src="coreboard.png" alt="AAC 77 Symbol Core Board" draggable="false">
     <div id="overlay"></div>
   </div>
-
-  <div id="speech-bar">Complete the tour to start exploring.</div>
 
   <!-- Onboarding panel -->
   <div id="ob-panel">
@@ -232,7 +228,7 @@
       const utt = new SpeechSynthesisUtterance(word);
       utt.rate = 0.88;
       window.speechSynthesis.speak(utt);
-      speechBar.textContent = `🔊  "${word}"`;
+      if (speechBar) speechBar.textContent = `🔊  "${word}"`;
       btn.classList.add('flash');
       setTimeout(() => btn.classList.remove('flash'), 250);
     }
@@ -295,7 +291,7 @@
         document.body.classList.remove('onboarding');
         panel.style.display = 'none';
         document.querySelectorAll('.cell').forEach(b => b.classList.remove('highlighted'));
-        speechBar.textContent = 'Click any symbol to hear it spoken aloud.';
+        if (speechBar) speechBar.textContent = 'Click any symbol to hear it spoken aloud.';
         return;
       }
       showStep(step);
