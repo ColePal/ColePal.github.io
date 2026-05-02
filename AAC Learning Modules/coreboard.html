@@ -147,7 +147,7 @@
       // Row 1
       ["I, me, my","it","who","what","am, is, are, be","when","be careful","all","some","that","this"],
       // Row 2
-      ["he, she","we, they, us","not, don't","come","do, does, did","again","now, it's time","how","why","finished, all done","problem"],
+      ["he, she","we, they, us","not, don't","come","do, does, did","again","now, it's time","how","why","finish, all done","problem"],
       // Row 3
       ["you, your","drink","eat, taste","feel","get, got","late, later","ready","all gone","bad","big","clean"],
       // Row 4
@@ -176,7 +176,7 @@
     // Map each cell [row][col] to a category string
     const catMap = {
       yellow: [[0,0],[0,1],[1,0],[1,1],[2,0]],           // pronouns (yellow bg)
-      pink:   [[0,2],[0,3],[0,5],[1,7],[1,8]],            // social/questions (pink bg)
+      pink:   [[0,2],[0,3],[0,5],[1,7],[1,8],[3,5]],            // social/questions (pink bg)
       orange: [[2,1],[2,2],[2,3],[2,4],[2,5],[2,6],[2,7],[3,0],[3,1],[3,2],[3,3],[3,4],[4,0],[4,1],[4,2],[4,3],[4,4],[5,0],[5,1],[5,2],[5,3],[5,4],[6,0],[6,1],[6,2],[6,3],[6,4]], // verbs (green bg)
       purple: [[3,5],[3,6],[4,5],[4,6],[5,5],[5,6],[6,5],[6,6],[6,7],[6,8]],  // prepositions (purple bg)
       blue:   [[2,8],[2,9],[2,10],[3,7],[3,8],[3,9],[3,10],[4,7],[4,8],[4,9],[4,10],[5,7],[5,8],[5,9],[5,10],[6,9],[6,10]], // descriptors (blue bg)
@@ -191,7 +191,7 @@
       if (cat) btn.dataset.cat = cat;
       Object.assign(btn.style, style);
       btn.setAttribute('aria-label', word);
-      const spokenWord = cat === 'yellow' ? word.split(',')[0].trim() : word;
+      const spokenWord = word.split(',')[0].trim();
       btn.addEventListener('click', () => speak(spokenWord, btn));
       return btn;
     }
@@ -246,7 +246,7 @@
         desc:  "The yellow symbols are pronouns and people words: 'I / me / my', 'you / your', 'he / she', 'we / they / us'. These are helpful for modelling phrases such as 'your turn' when playing with students.",
         hl: 'yellow' },
       { title: "🩷 Pink — Questions & Social Words",
-        desc:  "Pink cells include question words like 'who', 'what', 'when', 'how', and 'why', as well as social words like 'finished' and 'be careful'. These start conversations and signal needs.",
+        desc:  "Pink symbols include question words like 'who', 'what', 'where', 'when', 'how', and 'why'. These help students learn to ask questions and actively participate.",
         hl: 'pink' },
       { title: "🟢 Green — Action Words (Verbs)",
         desc:  "Green cells are verbs — action words like 'go', 'help', 'eat', 'play', and 'stop'. Verbs are the engine of communication; they express what the user wants to do.",
