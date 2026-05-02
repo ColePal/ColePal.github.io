@@ -166,7 +166,9 @@
       min-width: 160px;
       font-size: 0.85rem;
       color: #b71c1c;
-      font-style: italic;
+      font-style: normal;
+      font-weight: 600;
+      font-size: 0.88rem;
       display: flex;
       align-items: center;
       border-right: 1.5px solid #FFCDD2;
@@ -184,6 +186,22 @@
       line-height: 1.6;
     }
     .myth-truth::before { content: "✓"; font-weight: 900; flex-shrink: 0; }
+
+    /* ── Coloured round bullets for Why section ── */
+    #why ul li { padding-left: 24px; }
+    #why ul li::before {
+      content: '';
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      top: 5px;
+      font-size: 0;
+    }
+    #why ul li:nth-child(1)::before { background: #1565C0; }
+    #why ul li:nth-child(2)::before { background: #00838F; }
+    #why ul li:nth-child(3)::before { background: #2E7D32; }
+    #why ul li:nth-child(4)::before { background: #6A1B9A; }
+    #why ul li:nth-child(5)::before { background: #E65100; }
 
     /* ── Scroll reveal ── */
     .reveal {
@@ -265,7 +283,7 @@
 
     <!-- Total Communication Approach -->
     <div class="section reveal" id="total">
-      <h2>🔄 Total Communication Approach</h2>
+      <h2>🤝 Total Communication Approach</h2>
       <p>Instead of relying on just one method, we use <strong>all available types of communication</strong> to support understanding and expression. This includes:</p>
       <ul>
         <li><strong>Speech</strong> — spoken words when possible</li>
@@ -276,7 +294,9 @@
         <li><strong>Written words</strong> — for students who can read and write</li>
         <li><strong>High-tech AAC</strong> — communication apps on tablets or iPads</li>
       </ul>
-      <p style="margin-top:12px;">We respond to <strong>all</strong> of these as meaningful communication attempts. After all, even as adults, we rely more on gestures sometimes and don't want to talk. Especially if we're tired from a long day. Everyone who communicates will always choose the method that feels most efficient and accessible to them in the moment. The Total Communication Approach is about acknowledging our students' current communication methods, and giving them access to other methods, such as AAC. Over time, they can develop the skills to use AAC and choose it when they need to.</p>
+      <p style="margin-top:12px;">We respond to <strong>all</strong> of these as meaningful communication attempts.</p>
+      <p>After all, even as adults, we rely more on gestures sometimes and don't want to talk — especially if we're tired from a long day. Everyone who communicates will always choose the method that feels most efficient and accessible to them in the moment.</p>
+      <p>The Total Communication Approach is about acknowledging our students' current communication methods, and giving them access to other methods, such as AAC. Over time, they can develop the skills to use AAC and choose it when they need to.</p>
     </div>
 
     <!-- Key Strategies -->
