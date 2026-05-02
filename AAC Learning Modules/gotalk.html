@@ -122,14 +122,10 @@
 </head>
 <body class="onboarding">
 
-  <h1>GO Talk Device — AAC Board</h1>
-
   <div class="board-wrap" id="board-wrap">
     <img src="gotalk.png" alt="GO Talk AAC Device" draggable="false">
     <div class="overlay" id="overlay"></div>
   </div>
-
-  <p id="speech-bar">Complete the tour to explore the board</p>
 
   <!-- Onboarding panel -->
   <div id="ob-panel">
@@ -204,7 +200,7 @@
         btn.style.height = row.h.toFixed(3)    + '%';
         btn.addEventListener('click', () => {
           speak(word);
-          document.getElementById('speech-bar').textContent = `🔊 "${word}"`;
+          document.getElementById('speech-bar')?.textContent = `🔊 "${word}"`;
           btn.classList.add('speaking');
           setTimeout(() => btn.classList.remove('speaking'), 800);
         });
@@ -287,7 +283,7 @@
         setTimeout(() => {
           document.body.classList.remove('onboarding');
           document.getElementById('ob-panel').style.display = 'none';
-          document.getElementById('speech-bar').textContent = 'Click any cell to hear it spoken aloud';
+          document.getElementById('speech-bar')?.textContent = 'Click any cell to hear it spoken aloud';
         }, 600);
       }
     }
