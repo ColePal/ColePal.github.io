@@ -122,14 +122,10 @@
 </head>
 <body class="onboarding">
 
-  <h1>TD Snap — QuickFires Board</h1>
-
   <div class="board-wrap">
     <img src="tdsnap.png" alt="TD Snap QuickFires AAC Board" draggable="false">
     <div class="overlay" id="overlay"></div>
   </div>
-
-  <p id="speech-bar">Complete the tour to explore the board</p>
 
   <!-- Onboarding panel -->
   <div id="ob-panel">
@@ -190,7 +186,7 @@
       const u = new SpeechSynthesisUtterance(text);
       u.rate = 0.88;
       window.speechSynthesis.speak(u);
-      document.getElementById('speech-bar').textContent = '🔊 ' + text;
+      document.getElementById('speech-bar')?.textContent = '🔊 ' + text;
     }
 
     // ── Build button overlays ──────────────────────────────────────────
@@ -308,7 +304,7 @@
       if (st.last) {
         document.body.classList.remove('onboarding');
         document.getElementById('ob-panel').style.display = 'none';
-        document.getElementById('speech-bar').textContent = 'Click any cell to hear it spoken aloud';
+        document.getElementById('speech-bar')?.textContent = 'Click any cell to hear it spoken aloud';
       }
     }
 
