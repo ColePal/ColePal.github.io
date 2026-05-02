@@ -3,105 +3,437 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Recap: AAC from the Introduction to Communication Module</title>
+  <title>Introduction to AAC</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Segoe UI', Arial, sans-serif; background: #1a1a2e; color: #e0e0e0; min-height: 100vh; padding: 40px 24px; }
-    .container { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px; }
-    h1 { color: #fff; font-size: 1.8rem; text-align: center; }
-    .subtitle { color: #aaa; font-size: 0.95rem; text-align: center; margin-top: 6px; }
-    .back { display: inline-block; color: #7eb8f7; font-size: 0.85rem; text-decoration: none; margin-bottom: 4px; }
-    .back:hover { text-decoration: underline; }
 
-    .section { background: #16213e; border-radius: 14px; padding: 28px 32px; border: 1px solid #0f3460; }
-    .section h2 { font-size: 1.1rem; color: #7eb8f7; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
-    .section p { font-size: 0.9rem; color: #ccc; line-height: 1.7; margin-bottom: 10px; }
-    .section p:last-child { margin-bottom: 0; }
+    :root {
+      --blue:   #1565C0;
+      --blue-light: #E3F2FD;
+      --teal:   #00838F;
+      --teal-light: #E0F7FA;
+      --green:  #2E7D32;
+      --green-light: #E8F5E9;
+      --purple: #6A1B9A;
+      --purple-light: #F3E5F5;
+      --orange: #E65100;
+      --orange-light: #FFF3E0;
+      --red:    #C62828;
+      --red-light: #FFEBEE;
+      --grey:   #F5F7FA;
+      --text:   #1a1a2e;
+      --muted:  #555;
+    }
 
-    ul { list-style: none; display: flex; flex-direction: column; gap: 8px; padding: 0; }
-    ul li { font-size: 0.9rem; color: #ccc; line-height: 1.6; padding-left: 18px; position: relative; }
-    ul li::before { content: "•"; position: absolute; left: 0; color: #7eb8f7; }
+    html { scroll-behavior: smooth; }
 
-    .tech-grid { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 6px; }
-    .tech-card { background: #0f3460; border-radius: 10px; padding: 16px 20px; flex: 1; min-width: 200px; }
-    .tech-card h3 { font-size: 0.9rem; color: #fff; margin-bottom: 8px; }
-    .tech-card p { font-size: 0.82rem; color: #aaa; line-height: 1.6; margin: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #fff;
+      color: var(--text);
+      line-height: 1.6;
+    }
 
-    .stages { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
-    .stage { background: #0f3460; border-radius: 10px; padding: 14px 18px; }
-    .stage h3 { font-size: 0.9rem; color: #fff; margin-bottom: 5px; }
-    .stage p { font-size: 0.82rem; color: #aaa; line-height: 1.6; margin: 0; }
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(135deg, #1565C0 0%, #00838F 100%);
+      color: #fff;
+      padding: 72px 24px 56px;
+      text-align: center;
+    }
+    .hero .back {
+      display: inline-block;
+      color: rgba(255,255,255,0.8);
+      font-size: 0.85rem;
+      text-decoration: none;
+      margin-bottom: 20px;
+      letter-spacing: 0.02em;
+    }
+    .hero .back:hover { color: #fff; }
+    .hero h1 { font-size: 2.4rem; font-weight: 700; margin-bottom: 12px; }
+    .hero p  { font-size: 1.05rem; opacity: 0.9; max-width: 560px; margin: 0 auto; }
 
-    .strategies { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 6px; }
-    .strategy { background: #0f3460; border-radius: 10px; padding: 16px 18px; flex: 1; min-width: 220px; }
-    .strategy h3 { font-size: 0.88rem; color: #7eb8f7; margin-bottom: 6px; }
-    .strategy p { font-size: 0.82rem; color: #aaa; line-height: 1.6; margin: 0; }
+    /* ── Nav pills ── */
+    .nav-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      padding: 28px 24px;
+      background: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid #e0e0e0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .nav-pills a {
+      text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 6px 16px;
+      border-radius: 20px;
+      border: 1.5px solid #ccc;
+      color: var(--muted);
+      transition: all 0.2s;
+    }
+    .nav-pills a:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-light); }
 
-    .myth-grid { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
-    .myth-row { display: flex; gap: 12px; align-items: stretch; flex-wrap: wrap; }
-    .myth-label { background: #2e1a3a; border-radius: 8px; padding: 12px 16px; flex: 1; min-width: 180px; font-size: 0.85rem; color: #e0a0ff; font-style: italic; display: flex; align-items: center; }
-    .myth-truth { background: #1a3a2e; border-radius: 8px; padding: 12px 16px; flex: 2; min-width: 220px; font-size: 0.82rem; color: #aaa; line-height: 1.6; display: flex; align-items: center; }
+    /* ── Main layout ── */
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 60px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 72px;
+    }
+
+    /* ── Section heading ── */
+    .section-heading {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+    .section-heading .icon-badge {
+      width: 48px; height: 48px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+    .section-heading h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .section-heading p {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* ── Tech cards ── */
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+      margin-top: 20px;
+    }
+    .tech-card {
+      border-radius: 14px;
+      padding: 24px;
+      border: 1.5px solid transparent;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .tech-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+    .tech-card .badge { font-size: 1.6rem; margin-bottom: 10px; }
+    .tech-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+    .tech-card p  { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+    .tc-low    { background: var(--green-light);  border-color: #A5D6A7; }
+    .tc-mid    { background: var(--orange-light); border-color: #FFCC80; }
+    .tc-high   { background: var(--blue-light);   border-color: #90CAF9; }
+
+    /* ── Why list ── */
+    .why-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .why-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      background: var(--grey);
+      border-radius: 12px;
+      padding: 16px 20px;
+      transition: transform 0.2s;
+    }
+    .why-item:hover { transform: translateX(4px); }
+    .why-item .check { color: var(--green); font-size: 1.2rem; margin-top: 2px; flex-shrink: 0; }
+    .why-item p { font-size: 0.9rem; color: var(--text); line-height: 1.6; }
+
+    /* ── Total comm chips ── */
+    .comm-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .chip {
+      background: var(--blue-light);
+      color: var(--blue);
+      font-size: 0.83rem;
+      font-weight: 600;
+      padding: 7px 16px;
+      border-radius: 20px;
+      border: 1.5px solid #90CAF9;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .chip:hover { background: var(--blue); color: #fff; transform: scale(1.05); }
+
+    /* ── Stages timeline ── */
+    .stages {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      position: relative;
+      padding-left: 32px;
+    }
+    .stages::before {
+      content: '';
+      position: absolute;
+      left: 11px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--blue), var(--teal), var(--green), var(--purple));
+    }
+    .stage {
+      position: relative;
+      padding: 20px 24px;
+      margin-bottom: 12px;
+      border-radius: 14px;
+      border: 1.5px solid #e0e0e0;
+      background: #fff;
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .stage::before {
+      content: '';
+      position: absolute;
+      left: -27px;
+      top: 24px;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      box-shadow: 0 0 0 2px currentColor;
+    }
+    .stage:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.1); transform: translateX(4px); }
+    .stage h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 5px; }
+    .stage p  { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+    .stage-1::before { color: var(--blue); }
+    .stage-2::before { color: var(--teal); }
+    .stage-3::before { color: var(--green); }
+    .stage-4::before { color: var(--purple); }
+
+    /* ── Strategies grid ── */
+    .strategies {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
+    }
+    .strategy {
+      border-radius: 14px;
+      padding: 22px;
+      background: var(--grey);
+      border-left: 4px solid var(--blue);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .strategy:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(0,0,0,0.09); }
+    .strategy:nth-child(2) { border-color: var(--teal); }
+    .strategy:nth-child(3) { border-color: var(--green); }
+    .strategy:nth-child(4) { border-color: var(--purple); }
+    .strategy:nth-child(5) { border-color: var(--orange); }
+    .strategy h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 8px; }
+    .strategy p  { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+
+    /* ── Myths ── */
+    .myths {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .myth {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 0;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1.5px solid #e0e0e0;
+      transition: box-shadow 0.2s;
+    }
+    .myth:hover { box-shadow: 0 6px 18px rgba(0,0,0,0.09); }
+    .myth-q {
+      background: var(--red-light);
+      padding: 18px 20px;
+      font-size: 0.88rem;
+      font-style: italic;
+      color: #b71c1c;
+      display: flex;
+      align-items: center;
+      border-right: 1.5px solid #FFCDD2;
+    }
+    .myth-a {
+      background: var(--green-light);
+      padding: 18px 20px;
+      font-size: 0.85rem;
+      color: #1b5e20;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      line-height: 1.6;
+    }
+    .myth-a::before { content: "✓"; font-weight: 900; font-size: 1rem; flex-shrink: 0; }
+
+    /* ── Scroll reveal ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 32px 24px;
+      background: var(--grey);
+      font-size: 0.82rem;
+      color: var(--muted);
+      border-top: 1px solid #e0e0e0;
+    }
+    footer a { color: var(--blue); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 600px) {
+      .hero h1 { font-size: 1.7rem; }
+      .myth { grid-template-columns: 1fr; }
+      .myth-q { border-right: none; border-bottom: 1.5px solid #FFCDD2; }
+    }
   </style>
 </head>
 <body>
+
+  <!-- Hero -->
+  <div class="hero">
+    <a class="back" href="index.html">← Back to modules</a>
+    <h1>Introduction to AAC</h1>
+    <p>Key information for staff at Wilson School — what AAC is, how to use it, and why it matters.</p>
+  </div>
+
+  <!-- Nav pills -->
+  <nav class="nav-pills">
+    <a href="#what">What is AAC</a>
+    <a href="#why">Why use it</a>
+    <a href="#total">Total Communication</a>
+    <a href="#stages">Stages</a>
+    <a href="#strategies">Strategies</a>
+    <a href="#myths">Myths</a>
+  </nav>
+
   <div class="container">
-    <div>
-      <h1>Recap: AAC from the <i>Introduction to Communication</i> Module</h1>
-    </div>
 
     <!-- What is AAC -->
-    <div class="section">
-      <h2>💬 What is AAC?</h2>
-      <p>AAC stands for <strong>Augmentative and Alternative Communication.</strong> It includes all the ways students communicate that are different to or add onto speaking.</p>
-      <p><strong>Augmentative</strong> = adding onto speech &nbsp;|&nbsp; <strong>Alternative</strong> = instead of speech</p>
-      <p>We use AAC to help students understand us, as well as to support them to express themselves. AAC comes in three forms:</p>
-      <div class="tech-grid">
-        <div class="tech-card">
-          <h3>🟢 Low-tech</h3>
-          <p>Coreboards, PODD books, visual schedules, yes/no lanyards, single visual symbols</p>
-        </div>
-        <div class="tech-card">
-          <h3>🟡 Mid-tech</h3>
-          <p>Simple devices with recorded messages — e.g. buttons or switches that say "I need a break" or "I want more"</p>
-        </div>
-        <div class="tech-card">
-          <h3>🔵 High-tech</h3>
-          <p>Tablets or iPads with communication apps. Students access vocabulary by touch, using switches, or eye gaze.</p>
+    <section id="what" class="reveal">
+      <div class="section-heading">
+        <div class="icon-badge" style="background:#E3F2FD;">💬</div>
+        <div>
+          <h2>What is AAC?</h2>
+          <p>Augmentative and Alternative Communication</p>
         </div>
       </div>
-    </div>
+      <p style="color:var(--muted); margin-bottom:8px;"><strong>Augmentative</strong> = adding onto speech &nbsp;·&nbsp; <strong>Alternative</strong> = instead of speech</p>
+      <p style="color:var(--muted); margin-bottom:20px;">AAC includes all the ways students communicate beyond speaking. We use AAC visuals to help students understand us and to express themselves.</p>
+      <div class="tech-grid">
+        <div class="tech-card tc-low">
+          <div class="badge">🟢</div>
+          <h3>Low-tech</h3>
+          <p>Coreboards, PODD books, visual schedules, yes/no lanyards, gestures and signs, whiteboard</p>
+        </div>
+        <div class="tech-card tc-mid">
+          <div class="badge">🟡</div>
+          <h3>Mid-tech</h3>
+          <p>Simple devices with recorded messages — e.g. buttons or switches that say "I need a break" or "I want more"</p>
+        </div>
+        <div class="tech-card tc-high">
+          <div class="badge">🔵</div>
+          <h3>High-tech</h3>
+          <p>Tablets or iPads with communication apps. Students access vocabulary by touch, buttons, or eye gaze.</p>
+        </div>
+      </div>
+    </section>
 
     <!-- Why use AAC -->
-    <div class="section">
-      <h2>🌟 Why do we use AAC?</h2>
-      <ul>
-        <li>Many students cannot rely on speech alone — it can be intermittent, unreliable, insufficient, or physically tiring.</li>
-        <li>Visuals are more permanent than speech — they stay in view so students can process the language at their own pace.</li>
-        <li>AAC supports both <strong>understanding</strong> and <strong>expression</strong>.</li>
-        <li>Even students who speak benefit — AAC helps teach vocabulary and social communication skills.</li>
-        <li>AAC supports speech development. It does <strong>not</strong> replace or reduce speech. Everyone who has something to say will always choose the communication method that feels most efficient and accessible to them. If they can speak, they will.</li>
-      </ul>
-    </div>
+    <section id="why" class="reveal">
+      <div class="section-heading">
+        <div class="icon-badge" style="background:#E8F5E9;">🌟</div>
+        <div>
+          <h2>Why do we use AAC?</h2>
+          <p>Supporting communication at every level</p>
+        </div>
+      </div>
+      <div class="why-list">
+        <div class="why-item"><span class="check">✔</span><p>Many students cannot rely on speech alone — it can be intermittent, unreliable, insufficient, or physically tiring.</p></div>
+        <div class="why-item"><span class="check">✔</span><p>Visuals are more permanent than speech — they stay in view so students can process at their own pace.</p></div>
+        <div class="why-item"><span class="check">✔</span><p>AAC supports both <strong>understanding</strong> (comprehension) and <strong>expression</strong>.</p></div>
+        <div class="why-item"><span class="check">✔</span><p>Even students who can speak benefit — AAC helps build vocabulary, phrases, and social language skills.</p></div>
+        <div class="why-item"><span class="check">✔</span><p>AAC supports speech development. It does <strong>not</strong> replace or reduce speech.</p></div>
+      </div>
+    </section>
 
-    <!-- Total Communication Approach -->
-    <div class="section">
-      <h2>🔄 Total Communication Approach</h2>
-      <p>Instead of relying on just one method, we use <strong>all available types of communication</strong> to support understanding and expression. This includes:</p>
-      <ul>
-        <li><strong>Speech</strong> — spoken words when possible</li>
-        <li><strong>Vocalisations</strong> — sounds to express feelings or needs</li>
-        <li><strong>Gestures & Signs</strong> — pointing, natural body language, key word signing</li>
-        <li><strong>Facial expressions</strong></li>
-        <li><strong>Pictures & Symbols</strong> — coreboards, visual schedules, yes/no lanyards</li>
-        <li><strong>Written words</strong> — for students who can read and write</li>
-        <li><strong>High-tech AAC</strong> — communication apps on tablets or iPads</li>
-      </ul>
-      <p style="margin-top:12px;">We respond to <strong>all</strong> of these as meaningful communication attempts.</p>
-    </div>
+    <!-- Total Communication -->
+    <section id="total" class="reveal">
+      <div class="section-heading">
+        <div class="icon-badge" style="background:#E0F7FA;">🔄</div>
+        <div>
+          <h2>Total Communication Approach</h2>
+          <p>Using all available types of communication</p>
+        </div>
+      </div>
+      <p style="color:var(--muted); margin-bottom:18px;">Instead of relying on just one method, we use <strong>all available types of communication</strong> to support understanding and expression. We respond to all of them as meaningful communication attempts.</p>
+      <div class="comm-chips">
+        <span class="chip">🗣️ Speech</span>
+        <span class="chip">🔊 Vocalisations</span>
+        <span class="chip">👋 Gestures &amp; Signs</span>
+        <span class="chip">😊 Facial expressions</span>
+        <span class="chip">🗂️ Pictures &amp; Symbols</span>
+        <span class="chip">✏️ Written words</span>
+        <span class="chip">📱 High-tech AAC</span>
+      </div>
+    </section>
+
+    <!-- Communication Stages -->
+    <section id="stages" class="reveal">
+      <div class="section-heading">
+        <div class="icon-badge" style="background:#F3E5F5;">📶</div>
+        <div>
+          <h2>Communication Stages</h2>
+          <p>Based on the CASS Communication Continuum</p>
+        </div>
+      </div>
+      <div class="stages">
+        <div class="stage stage-1">
+          <h3>🌱 Emergent Communicators</h3>
+          <p>Use body language, facial expressions, and vocalisations. Adults interpret and model language verbally and visually.</p>
+        </div>
+        <div class="stage stage-2">
+          <h3>🤝 Social Partners</h3>
+          <p>Intentional but inconsistent communicators. Use gestures or a small range of words/symbols. Highly motivated by favourite activities.</p>
+        </div>
+        <div class="stage stage-3">
+          <h3>🗣️ Language Partners</h3>
+          <p>Use 3–100 words/symbols. Beginning to combine words into short phrases. Need adult support to model questions, greetings, and feelings.</p>
+        </div>
+        <div class="stage stage-4">
+          <h3>💬 Conversational Partners</h3>
+          <p>Independent communicators using 100+ words in sentences across contexts. Can communicate with familiar and unfamiliar people.</p>
+        </div>
+      </div>
+    </section>
 
     <!-- Key Strategies -->
-    <div class="section">
-      <h2>🛠️ Key Strategies</h2>
+    <section id="strategies" class="reveal">
+      <div class="section-heading">
+        <div class="icon-badge" style="background:#FFF3E0;">🛠️</div>
+        <div>
+          <h2>Key Strategies</h2>
+          <p>Practical tools for every interaction</p>
+        </div>
+      </div>
       <div class="strategies">
         <div class="strategy">
           <h3>👆 Modelling</h3>
@@ -109,11 +441,11 @@
         </div>
         <div class="strategy">
           <h3>🗨️ Parallel Talk</h3>
-          <p>Describe what the student is doing in the moment using symbols. Teaches word meaning and shows two ways to express themselves (speaking and using symbols).</p>
+          <p>Describe what the student is doing in real time using symbols. Teaches word meaning and shows two ways to express themselves.</p>
         </div>
         <div class="strategy">
           <h3>💡 Assigning Meaning</h3>
-          <p>Recognise and respond to all communication attempts (e.g., changes in body language, sounds, gestures) as meaningful. This shows them they can, and do, communicate: what they do and how they respond matters.</p>
+          <p>Recognise and respond to all communication attempts — body language, sounds, gestures — as meaningful. Follow the student's focus.</p>
         </div>
         <div class="strategy">
           <h3>⏸️ Active Waiting</h3>
@@ -124,27 +456,66 @@
           <p>Change topic, activity, or location to match what the student is interested in. Motivation is critical for communication development.</p>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- Myths -->
-    <div class="section">
-      <h2>🚫 Common Myths — Busted</h2>
-      <div class="myth-grid">
-        <div class="myth-row">
-          <div class="myth-label">"AAC will make them too lazy to speak"</div>
-          <div class="myth-truth">Myth. AAC supports speech by reducing anxiety and freeing up cognitive resources needed for speaking.</div>
-        </div>
-        <div class="myth-row">
-          <div class="myth-label">"If they can speak, they don't need AAC"</div>
-          <div class="myth-truth">Myth. AAC builds vocabulary, phrase-making, and social language — it helps students be understood, not just heard.</div>
-        </div>
-        <div class="myth-row">
-          <div class="myth-label">"Random words on the app means they're not learning"</div>
-          <div class="myth-truth">Myth. Exploring the app is like babbling — assign meaning to it. They are learning that words get reactions and that words mean something.</div>
+    <section id="myths" class="reveal">
+      <div class="section-heading">
+        <div class="icon-badge" style="background:#FFEBEE;">🚫</div>
+        <div>
+          <h2>Common Myths — Busted</h2>
+          <p>Setting the record straight</p>
         </div>
       </div>
-    </div>
+      <div class="myths">
+        <div class="myth">
+          <div class="myth-q">"AAC will make them too lazy to speak"</div>
+          <div class="myth-a">AAC supports speech by reducing anxiety and freeing up cognitive resources needed for speaking.</div>
+        </div>
+        <div class="myth">
+          <div class="myth-q">"If they can speak, they don't need AAC"</div>
+          <div class="myth-a">AAC builds vocabulary, phrase-making, and social language — it helps students be understood, not just heard.</div>
+        </div>
+        <div class="myth">
+          <div class="myth-q">"Random words on the app means they're not learning"</div>
+          <div class="myth-a">Exploring the app is like babbling — assign meaning to it. They are learning that words get reactions and that words mean something.</div>
+        </div>
+      </div>
+    </section>
 
   </div>
+
+  <footer>
+    <p>Wilson School — AAC Learning Modules &nbsp;·&nbsp; <a href="index.html">← Back to all modules</a></p>
+  </footer>
+
+  <script>
+    // Scroll reveal
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => entry.target.classList.add('visible'), i * 80);
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    reveals.forEach(el => observer.observe(el));
+
+    // Active nav pill on scroll
+    const sections = document.querySelectorAll('section[id]');
+    const pills = document.querySelectorAll('.nav-pills a');
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(s => {
+        if (window.scrollY >= s.offsetTop - 120) current = s.id;
+      });
+      pills.forEach(a => {
+        a.style.background = a.getAttribute('href') === '#' + current ? 'var(--blue-light)' : '';
+        a.style.color = a.getAttribute('href') === '#' + current ? 'var(--blue)' : '';
+        a.style.borderColor = a.getAttribute('href') === '#' + current ? 'var(--blue)' : '';
+      });
+    });
+  </script>
 </body>
 </html>
