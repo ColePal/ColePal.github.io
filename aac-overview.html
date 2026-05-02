@@ -6,65 +6,245 @@
   <title>Recap: AAC from the Introduction to Communication Module</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Segoe UI', Arial, sans-serif; background: #1a1a2e; color: #e0e0e0; min-height: 100vh; padding: 40px 24px; }
-    .container { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px; }
-    h1 { color: #fff; font-size: 1.8rem; text-align: center; }
-    .subtitle { color: #aaa; font-size: 0.95rem; text-align: center; margin-top: 6px; }
-    .back { display: inline-block; color: #7eb8f7; font-size: 0.85rem; text-decoration: none; margin-bottom: 4px; }
-    .back:hover { text-decoration: underline; }
 
-    .section { background: #16213e; border-radius: 14px; padding: 28px 32px; border: 1px solid #0f3460; }
-    .section h2 { font-size: 1.1rem; color: #7eb8f7; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
-    .section p { font-size: 0.9rem; color: #ccc; line-height: 1.7; margin-bottom: 10px; }
+    :root {
+      --blue:          #1565C0;
+      --blue-light:    #E3F2FD;
+      --teal:          #00838F;
+      --green:         #2E7D32;
+      --green-light:   #E8F5E9;
+      --purple:        #6A1B9A;
+      --orange-light:  #FFF3E0;
+      --red-light:     #FFEBEE;
+      --grey:          #F5F7FA;
+      --text:          #1a1a2e;
+      --muted:         #555;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #fff;
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(135deg, #1565C0 0%, #00838F 100%);
+      color: #fff;
+      padding: 64px 24px 52px;
+      text-align: center;
+    }
+    .hero h1  { font-size: 2rem; font-weight: 700; margin-bottom: 10px; line-height: 1.3; }
+    .hero h1 i { font-style: italic; opacity: 0.9; }
+
+    /* ── Sticky nav ── */
+    .nav-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      padding: 16px 24px;
+      background: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid #e0e0e0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .nav-pills a {
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 5px 14px;
+      border-radius: 20px;
+      border: 1.5px solid #ccc;
+      color: var(--muted);
+      transition: all 0.2s;
+    }
+    .nav-pills a:hover,
+    .nav-pills a.active { border-color: var(--blue); color: var(--blue); background: var(--blue-light); }
+
+    /* ── Container ── */
+    .container {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 56px 24px 72px;
+      display: flex;
+      flex-direction: column;
+      gap: 56px;
+    }
+
+    /* ── Section card ── */
+    .section {
+      background: #fff;
+      border-radius: 16px;
+      padding: 32px 36px;
+      border: 1.5px solid #e8e8e8;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+      transition: box-shadow 0.3s;
+    }
+    .section:hover { box-shadow: 0 8px 28px rgba(0,0,0,0.09); }
+
+    .section h2 {
+      font-size: 1.15rem;
+      color: var(--text);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--blue-light);
+    }
+
+    .section p {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.75;
+      margin-bottom: 10px;
+    }
     .section p:last-child { margin-bottom: 0; }
+    .section p strong { color: var(--text); }
 
+    /* ── Lists ── */
     ul { list-style: none; display: flex; flex-direction: column; gap: 8px; padding: 0; }
-    ul li { font-size: 0.9rem; color: #ccc; line-height: 1.6; padding-left: 18px; position: relative; }
-    ul li::before { content: "•"; position: absolute; left: 0; color: #7eb8f7; }
+    ul li {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.65;
+      padding-left: 22px;
+      position: relative;
+    }
+    ul li::before { content: "✔"; position: absolute; left: 0; color: var(--green); font-size: 0.8rem; top: 2px; }
+    ul li strong { color: var(--text); }
 
-    .tech-grid { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 6px; }
-    .tech-card { background: #0f3460; border-radius: 10px; padding: 16px 20px; flex: 1; min-width: 200px; }
-    .tech-card h3 { font-size: 0.9rem; color: #fff; margin-bottom: 8px; }
-    .tech-card p { font-size: 0.82rem; color: #aaa; line-height: 1.6; margin: 0; }
+    /* ── Tech cards ── */
+    .tech-grid { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 16px; }
+    .tech-card {
+      border-radius: 12px;
+      padding: 18px 22px;
+      flex: 1;
+      min-width: 200px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .tech-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+    .tech-card h3 { font-size: 0.9rem; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+    .tech-card p  { font-size: 0.82rem; color: var(--muted); line-height: 1.6; margin: 0; }
+    .tc-low  { background: var(--green-light);  border: 1.5px solid #A5D6A7; }
+    .tc-mid  { background: var(--orange-light); border: 1.5px solid #FFCC80; }
+    .tc-high { background: var(--blue-light);   border: 1.5px solid #90CAF9; }
 
-    .stages { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
-    .stage { background: #0f3460; border-radius: 10px; padding: 14px 18px; }
-    .stage h3 { font-size: 0.9rem; color: #fff; margin-bottom: 5px; }
-    .stage p { font-size: 0.82rem; color: #aaa; line-height: 1.6; margin: 0; }
-
+    /* ── Strategies ── */
     .strategies { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 6px; }
-    .strategy { background: #0f3460; border-radius: 10px; padding: 16px 18px; flex: 1; min-width: 220px; }
-    .strategy h3 { font-size: 0.88rem; color: #7eb8f7; margin-bottom: 6px; }
-    .strategy p { font-size: 0.82rem; color: #aaa; line-height: 1.6; margin: 0; }
+    .strategy {
+      background: var(--grey);
+      border-radius: 12px;
+      padding: 18px 20px;
+      flex: 1;
+      min-width: 220px;
+      border-left: 4px solid var(--blue);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .strategy:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.09); }
+    .strategy:nth-child(2) { border-color: var(--teal); }
+    .strategy:nth-child(3) { border-color: var(--green); }
+    .strategy:nth-child(4) { border-color: var(--purple); }
+    .strategy:nth-child(5) { border-color: #E65100; }
+    .strategy h3 { font-size: 0.88rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .strategy p  { font-size: 0.82rem; color: var(--muted); line-height: 1.6; margin: 0; }
 
-    .myth-grid { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
-    .myth-row { display: flex; gap: 12px; align-items: stretch; flex-wrap: wrap; }
-    .myth-label { background: #2e1a3a; border-radius: 8px; padding: 12px 16px; flex: 1; min-width: 180px; font-size: 0.85rem; color: #e0a0ff; font-style: italic; display: flex; align-items: center; }
-    .myth-truth { background: #1a3a2e; border-radius: 8px; padding: 12px 16px; flex: 2; min-width: 220px; font-size: 0.82rem; color: #aaa; line-height: 1.6; display: flex; align-items: center; }
+    /* ── Myths ── */
+    .myth-grid { display: flex; flex-direction: column; gap: 12px; margin-top: 6px; }
+    .myth-row  { display: flex; gap: 0; align-items: stretch; border-radius: 12px; overflow: hidden; border: 1.5px solid #e0e0e0; transition: box-shadow 0.2s; }
+    .myth-row:hover { box-shadow: 0 6px 18px rgba(0,0,0,0.09); }
+    .myth-label {
+      background: var(--red-light);
+      padding: 14px 18px;
+      flex: 1;
+      min-width: 160px;
+      font-size: 0.85rem;
+      color: #b71c1c;
+      font-style: italic;
+      display: flex;
+      align-items: center;
+      border-right: 1.5px solid #FFCDD2;
+    }
+    .myth-truth {
+      background: var(--green-light);
+      padding: 14px 18px;
+      flex: 2;
+      min-width: 200px;
+      font-size: 0.82rem;
+      color: #1b5e20;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      line-height: 1.6;
+    }
+    .myth-truth::before { content: "✓"; font-weight: 900; flex-shrink: 0; }
+
+    /* ── Scroll reveal ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(36px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 28px 24px;
+      background: var(--grey);
+      font-size: 0.82rem;
+      color: var(--muted);
+      border-top: 1px solid #e0e0e0;
+    }
+    footer a { color: var(--blue); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 580px) {
+      .hero h1 { font-size: 1.5rem; }
+      .myth-row { flex-direction: column; }
+      .myth-label { border-right: none; border-bottom: 1.5px solid #FFCDD2; }
+      .section { padding: 22px 18px; }
+    }
   </style>
 </head>
 <body>
+
+  <div class="hero">
+    <h1>Recap: AAC from the <i>Introduction to Communication</i> Module</h1>
+  </div>
+
+  <nav class="nav-pills">
+    <a href="#what">What is AAC</a>
+    <a href="#why">Why use it</a>
+    <a href="#total">Total Communication</a>
+    <a href="#strategies">Strategies</a>
+    <a href="#myths">Myths</a>
+  </nav>
+
   <div class="container">
-    <div>
-      <h1>Recap: AAC from the <i>Introduction to Communication</i> Module</h1>
-    </div>
 
     <!-- What is AAC -->
-    <div class="section">
+    <div class="section reveal" id="what">
       <h2>💬 What is AAC?</h2>
       <p>AAC stands for <strong>Augmentative and Alternative Communication.</strong> It includes all the ways students communicate that are different to or add onto speaking.</p>
       <p><strong>Augmentative</strong> = adding onto speech &nbsp;|&nbsp; <strong>Alternative</strong> = instead of speech</p>
       <p>We use AAC to help students understand us, as well as to support them to express themselves. AAC comes in three forms:</p>
       <div class="tech-grid">
-        <div class="tech-card">
+        <div class="tech-card tc-low">
           <h3>🟢 Low-tech</h3>
           <p>Coreboards, PODD books, visual schedules, yes/no lanyards, single visual symbols</p>
         </div>
-        <div class="tech-card">
+        <div class="tech-card tc-mid">
           <h3>🟡 Mid-tech</h3>
           <p>Simple devices with recorded messages — e.g. buttons or switches that say "I need a break" or "I want more"</p>
         </div>
-        <div class="tech-card">
+        <div class="tech-card tc-high">
           <h3>🔵 High-tech</h3>
           <p>Tablets or iPads with communication apps. Students access vocabulary by touch, using switches, or eye gaze.</p>
         </div>
@@ -72,7 +252,7 @@
     </div>
 
     <!-- Why use AAC -->
-    <div class="section">
+    <div class="section reveal" id="why">
       <h2>🌟 Why do we use AAC?</h2>
       <ul>
         <li>Many students cannot rely on speech alone — it can be intermittent, unreliable, insufficient, or physically tiring.</li>
@@ -84,7 +264,7 @@
     </div>
 
     <!-- Total Communication Approach -->
-    <div class="section">
+    <div class="section reveal" id="total">
       <h2>🔄 Total Communication Approach</h2>
       <p>Instead of relying on just one method, we use <strong>all available types of communication</strong> to support understanding and expression. This includes:</p>
       <ul>
@@ -100,7 +280,7 @@
     </div>
 
     <!-- Key Strategies -->
-    <div class="section">
+    <div class="section reveal" id="strategies">
       <h2>🛠️ Key Strategies</h2>
       <div class="strategies">
         <div class="strategy">
@@ -127,7 +307,7 @@
     </div>
 
     <!-- Myths -->
-    <div class="section">
+    <div class="section reveal" id="myths">
       <h2>🚫 Common Myths — Busted</h2>
       <div class="myth-grid">
         <div class="myth-row">
@@ -146,5 +326,31 @@
     </div>
 
   </div>
+
+  <footer>
+    <p>Wilson School — AAC Learning Modules &nbsp;·&nbsp; <a href="index.html">← Back to all modules</a></p>
+  </footer>
+
+  <script>
+    // Scroll reveal
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // Active nav pill
+    const sections = document.querySelectorAll('.section[id]');
+    const pills = document.querySelectorAll('.nav-pills a');
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(s => { if (window.scrollY >= s.offsetTop - 130) current = s.id; });
+      pills.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + current));
+    });
+  </script>
 </body>
 </html>
