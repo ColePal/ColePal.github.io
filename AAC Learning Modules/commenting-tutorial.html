@@ -115,6 +115,20 @@
       text-align: center;
     }
 
+    #panel-toggle {
+      position: absolute;
+      top: 8px; right: 10px;
+      background: none; border: none;
+      font-size: 1rem; cursor: pointer;
+      color: #aaa; line-height: 1;
+      padding: 2px 4px;
+    }
+    #panel-toggle:hover { color: #555; }
+
+    #panel-body { overflow: hidden; }
+    #task-panel.collapsed #panel-body { display: none; }
+    #task-panel.collapsed { padding: 10px 20px; }
+
     #task-counter { font-size: 0.72rem; color: #aaa; margin-bottom: 3px; letter-spacing: 0.05em; text-transform: uppercase; }
 
     #prog-wrap { width: 100%; height: 5px; background: #eee; border-radius: 3px; margin-bottom: 8px; }
@@ -272,6 +286,8 @@
   </div>
 
   <div id="task-panel">
+    <button id="panel-toggle" title="Hide panel">▼</button>
+    <div id="panel-body">
     <div id="task-counter"></div>
     <div id="prog-wrap"><div id="prog-bar"></div></div>
     <h2 id="task-title"></h2>
@@ -286,6 +302,7 @@
     </div>
 
     <button id="btn-next">Next Task →</button>
+    </div>
   </div>
 
   <div id="done-screen">
@@ -538,6 +555,15 @@
     });
 
     loadTask(0);
+
+    // Panel collapse toggle
+    const taskPanel   = document.getElementById('task-panel');
+    const panelToggle = document.getElementById('panel-toggle');
+    panelToggle.addEventListener('click', () => {
+      const collapsed = taskPanel.classList.toggle('collapsed');
+      panelToggle.textContent = collapsed ? '▲' : '▼';
+      panelToggle.title = collapsed ? 'Show instructions' : 'Hide panel';
+    });
   </script>
 
   <!-- Audio unlock: shown only when embedded in an iframe -->
