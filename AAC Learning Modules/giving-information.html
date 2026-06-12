@@ -148,6 +148,17 @@
       min-height: 1.4em;
     }
 
+    #pass-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      min-height: 1.2em;
+    }
+    #pass-label.guided { color: #5C6BC0; }
+    #pass-label.independent { color: #2E7D32; }
+
     /* Done screen */
     #done-screen {
       display: none;
@@ -187,6 +198,7 @@
 
     <div id="phrase-card">
       <div class="phrase-display" id="phrase-display"></div>
+      <div id="pass-label"></div>
       <div class="word-chips"    id="word-chips"></div>
       <div id="tap-hint"></div>
     </div>
@@ -230,11 +242,11 @@
         type:  "category",
         icon:  "📅",
         title: "Introducing Activities",
-        desc:  "Use these phrases to let a student know what is coming next. Modelling them consistently helps students anticipate routines and feel more secure.",
+        desc:  "Use these phrases to let a student know what is coming next. Modelling them consistently helps students anticipate routines and feel safe.",
       },
       { type:"phrase", display:"time to eat",  words:["now","eat"],   labels:["now / it's time","eat"]  },
       { type:"phrase", display:"time to play", words:["now","play"],  labels:["now / it's time","play"] },
-      { type:"phrase", display:"time to work", words:["now","work"],  labels:["now / it's time","work"] },
+      { type:"phrase", display:"time to listen", words:["now","hear"],  labels:["now / it's time","listen"] },
       {
         type:  "category",
         icon:  "👉",
@@ -303,7 +315,7 @@
     });
 
     // TTS overrides
-    const speakAs = { "i": "I", "look": "see", "now": "now it's time" };
+    const speakAs = { "i": "I", "look": "see", "now": "now it's time", "hear": "listen" };
     function speak(key) {
       window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(speakAs[key] || key);
@@ -314,6 +326,7 @@
     // State
     let idx      = 0;
     let wordStep = 0;
+    let phrasePass = 0; // 0=guided, 1=independent
 
     // DOM
     const progBar    = document.getElementById('prog-bar');
@@ -340,7 +353,11 @@
       item.words.forEach((_, i) => {
         const chip = document.createElement('span');
         chip.className = 'chip ' + (i < step ? 'done' : i === step ? 'current' : 'pending');
-        chip.textContent = item.labels[i];
+        if (phrasePass === 0) {
+          chip.textContent = item.labels[i];
+        } else {
+          chip.textContent = i < step ? '✓' : '?';
+        }
         container.appendChild(chip);
       });
     }
@@ -355,6 +372,7 @@
       }
 
       if (item.type === 'category') {
+        phrasePass = 0;
         clearTarget();
         catCard.style.display    = 'block';
         phraseCard.style.display = 'none';
@@ -366,8 +384,19 @@
         catCard.style.display    = 'none';
         phraseCard.style.display = 'block';
         document.getElementById('phrase-display').textContent = item.display;
+
+        const passLabel = document.getElementById('pass-label');
+        if (phrasePass === 0) {
+          passLabel.textContent = '🔵 With help';
+          passLabel.className = 'guided';
+          tapHint.textContent = `Find and tap: "${item.labels[0]}"`;
+        } else {
+          passLabel.textContent = '⭐ Now you try';
+          passLabel.className = 'independent';
+          tapHint.textContent = 'Find the words for this phrase';
+        }
+
         renderChips(item, 0);
-        tapHint.textContent = `Find and tap: "${item.labels[0]}"`;
         setTarget(item.words[0]);
       }
     }
@@ -389,16 +418,30 @@
 
         wordStep++;
         if (wordStep >= item.words.length) {
-          phrasesComplete++;
-          updateProgress();
           renderChips(item, wordStep);
-          tapHint.textContent = 'Nice one!';
           clearTarget();
-          fireConfetti();
-          setTimeout(() => { idx++; loadItem(idx); }, 900);
+
+          if (phrasePass === 0) {
+            tapHint.textContent = 'Now try it on your own!';
+            setTimeout(() => {
+              phrasePass = 1;
+              loadItem(idx);
+            }, 1200);
+          } else {
+            phrasesComplete++;
+            updateProgress();
+            tapHint.textContent = 'Nice one!';
+            fireConfetti();
+            phrasePass = 0;
+            setTimeout(() => { idx++; loadItem(idx); }, 900);
+          }
         } else {
           renderChips(item, wordStep);
-          tapHint.textContent = `Now find: "${item.labels[wordStep]}"`;
+          if (phrasePass === 0) {
+            tapHint.textContent = `Now find: "${item.labels[wordStep]}"`;
+          } else {
+            tapHint.textContent = 'Keep going!';
+          }
           setTarget(item.words[wordStep]);
         }
       }
