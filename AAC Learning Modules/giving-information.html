@@ -302,7 +302,7 @@
         desc:  "These phrases support turn-taking and requesting help. They are some of the most empowering words on the board.",
       },
       { type:"phrase", display:"help me",   words:["help","i"],  labels:["help","me"],  ttsMap:{"i":"me"} },
-      { type:"phrase", display:"your turn", words:["you","turn"], labels:["your","turn"] },
+      { type:"phrase", display:"your turn", words:["you","turn"], labels:["your","turn"], ttsMap:{"you":"your"} },
     ];
 
     const totalPhrases   = content.filter(c => c.type === 'phrase').length;
