@@ -142,6 +142,55 @@
     #btn-next:hover  { background: #0D47A1; }
     #btn-next.show   { display: inline-block; }
 
+    /* ── Reflection task extras ─────────────────────── */
+    #reflection-area { display: none; margin-top: 4px; }
+
+    #selected-word-display {
+      font-size: 0.82rem;
+      color: #777;
+      margin-bottom: 10px;
+      min-height: 1.4em;
+      font-style: italic;
+    }
+    #selected-word-display.picked {
+      color: #1565C0;
+      font-style: normal;
+      font-weight: 600;
+    }
+
+    #reflection-input {
+      width: 100%;
+      border: 1.5px solid #ddd;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 0.88rem;
+      font-family: inherit;
+      color: #222;
+      resize: none;
+      margin-bottom: 10px;
+      transition: border-color 0.15s;
+      line-height: 1.5;
+    }
+    #reflection-input:focus { outline: none; border-color: #1565C0; }
+
+    #btn-submit-reflection {
+      background: #1565C0; color: #fff; border: none;
+      padding: 10px 26px; border-radius: 9px;
+      font-size: 0.9rem; font-weight: 700; cursor: pointer;
+      transition: background 0.15s, opacity 0.15s;
+    }
+    #btn-submit-reflection:hover:not(:disabled) { background: #0D47A1; }
+    #btn-submit-reflection:disabled { opacity: 0.35; cursor: default; }
+
+    /* Selected WH word glows gold */
+    .cell.task-hl-selected {
+      animation: glow-selected 1.2s ease-in-out infinite !important;
+    }
+    @keyframes glow-selected {
+      0%,100% { box-shadow: 0 0 0 3px rgba(255,210,0,0.95), 0 0 16px rgba(255,210,0,0.6); background: rgba(255,210,0,0.2); }
+      50%      { box-shadow: 0 0 0 6px rgba(255,210,0,0.4),  0 0 30px rgba(255,210,0,0.25); background: rgba(255,210,0,0.07); }
+    }
+
     /* ── Completion screen ──────────────────────────── */
     #done-screen {
       display: none;
@@ -177,6 +226,14 @@
     <h2 id="task-title"></h2>
     <p  id="task-instr"></p>
     <div id="task-feedback"></div>
+
+    <!-- Reflection task extras (question words task) -->
+    <div id="reflection-area">
+      <div id="selected-word-display">👆 Click one of the highlighted question words on the board to select it</div>
+      <textarea id="reflection-input" rows="3" placeholder="e.g. 'What do you want?' or 'Where is it?'"></textarea>
+      <button id="btn-submit-reflection" disabled>Submit ✓</button>
+    </div>
+
     <button id="btn-next">Next Task →</button>
   </div>
 
@@ -216,7 +273,14 @@
     // ── Tasks ─────────────────────────────────────────────────────────────
     const tasks = [
       {
-        title:      "Task 1 — Transitioning to Lunch",
+        type:        "reflection",
+        title:       "Task 1 — Question Words",
+        instruction: "There are six question words on the core board. All six are highlighted — click any one to select it, then write a question you could model with that word during your day.",
+        highlight:   ["who", "what", "when", "how", "why", "where"],
+        successMsg:  "✅ Brilliant! Question words are some of the most powerful tools on the board — they invite students into conversation and show them that their ideas are worth exploring.",
+      },
+      {
+        title:      "Task 2 — Transitioning to Lunch",
         instruction:"It's time to move your students from circle time to the table for lunch. Which word would you model on the core board to help them understand and prepare for the transition?",
         highlight:  ["feel", "ready", "fast"],
         correct:    "ready",
@@ -227,7 +291,7 @@
         },
       },
       {
-        title:      "Task 2 — Puzzle Time",
+        title:      "Task 3 — Puzzle Time",
         instruction:"You're doing a puzzle with a student and they're guiding your hand to the pieces. Which word would you model to encourage their independence and give them the confidence to give it a go themselves?",
         highlight:  ["you", "stop", "help"],
         correct:    "you",
@@ -238,7 +302,7 @@
         },
       },
       {
-        title:      "Task 3 — Story Time",
+        title:      "Task 4 — Story Time",
         instruction:"You're reading a book with a student and they start looking around, shuffling, or showing other cues that they're losing interest. What do you model to respond to that and keep them engaged?",
         highlight:  ["different", "hear", "sad"],
         correct:    "different",
@@ -249,7 +313,7 @@
         },
       },
       {
-        title:      "Task 4 — Group Activity",
+        title:      "Task 5 — Group Activity",
         instruction:"A student keeps getting up during a group activity and isn't responding to modelling of 'sit down' or other expectations. What do you model to follow their lead and move things forward positively?",
         highlight:  ["finish", "open", "wait"],
         correct:    "finish",
@@ -306,18 +370,24 @@
     }
 
     // ── Task engine ───────────────────────────────────────────────────────
-    let taskIdx  = 0;
-    let answered = false;
+    let taskIdx      = 0;
+    let answered     = false;
+    let selectedWord = null;
 
-    const elCounter  = document.getElementById('task-counter');
-    const elProgBar  = document.getElementById('prog-bar');
-    const elTitle    = document.getElementById('task-title');
-    const elInstr    = document.getElementById('task-instr');
-    const elFeedback = document.getElementById('task-feedback');
-    const btnNext    = document.getElementById('btn-next');
+    const elCounter            = document.getElementById('task-counter');
+    const elProgBar            = document.getElementById('prog-bar');
+    const elTitle              = document.getElementById('task-title');
+    const elInstr              = document.getElementById('task-instr');
+    const elFeedback           = document.getElementById('task-feedback');
+    const btnNext              = document.getElementById('btn-next');
+    const reflectionArea       = document.getElementById('reflection-area');
+    const selectedWordDisplay  = document.getElementById('selected-word-display');
+    const reflectionInput      = document.getElementById('reflection-input');
+    const btnSubmit            = document.getElementById('btn-submit-reflection');
 
     function loadTask(i) {
-      answered = false;
+      answered     = false;
+      selectedWord = null;
       const t = tasks[i];
 
       elCounter.textContent  = `Task ${i + 1} of ${tasks.length}`;
@@ -327,18 +397,58 @@
       elFeedback.textContent = '';
       btnNext.classList.remove('show');
 
-      allCells.forEach(b => b.classList.remove('task-hl'));
+      const isReflection = t.type === 'reflection';
+      reflectionArea.style.display = isReflection ? 'block' : 'none';
+      elFeedback.style.display     = isReflection ? 'none'  : 'block';
+      if (isReflection) {
+        selectedWordDisplay.textContent = '👆 Click one of the highlighted question words on the board to select it';
+        selectedWordDisplay.classList.remove('picked');
+        reflectionInput.value = '';
+        btnSubmit.disabled    = true;
+      }
+
+      allCells.forEach(b => b.classList.remove('task-hl', 'task-hl-selected'));
       const hlSet = new Set(t.highlight.map(w => w.toLowerCase()));
       allCells.forEach(b => {
         if (hlSet.has(b.dataset.key)) b.classList.add('task-hl');
       });
     }
 
+    function updateSubmitBtn() {
+      btnSubmit.disabled = !(selectedWord && reflectionInput.value.trim().length > 0);
+    }
+
+    reflectionInput.addEventListener('input', updateSubmitBtn);
+
+    btnSubmit.addEventListener('click', () => {
+      if (!selectedWord || !reflectionInput.value.trim()) return;
+      answered = true;
+      btnSubmit.disabled = true;
+      const t = tasks[taskIdx];
+      elFeedback.style.display = 'block';
+      elFeedback.style.color   = '#2e7d32';
+      elFeedback.textContent   = t.successMsg;
+      elProgBar.style.width    = `${((taskIdx + 1) / tasks.length) * 100}%`;
+      btnNext.textContent      = taskIdx + 1 < tasks.length ? 'Next Task →' : 'Finish 🎉';
+      btnNext.classList.add('show');
+      fireConfetti();
+    });
+
     function onCellClick(btn, key) {
       if (answered) return;
       speak(key);
 
       const t = tasks[taskIdx];
+
+      if (t.type === 'reflection') {
+        allCells.forEach(b => b.classList.remove('task-hl-selected'));
+        btn.classList.add('task-hl-selected');
+        selectedWord = key;
+        selectedWordDisplay.textContent = `✏️ "${key}" selected — now write a question you could model with this word`;
+        selectedWordDisplay.classList.add('picked');
+        updateSubmitBtn();
+        return;
+      }
 
       if (key === t.correct.toLowerCase()) {
         answered = true;
