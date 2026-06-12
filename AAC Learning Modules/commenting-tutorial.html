@@ -266,7 +266,7 @@
     <div id="intro-card">
       <span class="intro-tag">Strategy</span>
       <h2>Commenting & Parallel Talk</h2>
-      <p>Parallel talk means describing what the student is doing in the moment — without asking questions or giving instructions. We use <strong>declarative language:</strong> simple statements that describe what we can see, hear, or experience right now.<br><br>In each task below, choose the word that best fits that strategy.</p>
+      <p>Parallel talk means describing what the student is doing in the moment, without asking questions or giving instructions. We use <strong>declarative language:</strong> simple statements that describe what we can see, hear, or experience right now.<br><br>In each task below, choose the word that best fits that strategy.</p>
       <button id="btn-intro-start">Let's go →</button>
     </div>
   </div>
@@ -290,7 +290,7 @@
 
   <div id="done-screen">
     <h1>🎉 Nice work!</h1>
-    <p>Every time you model on the core board, students get another opportunity to hear a word, see it paired with a symbol, and build familiarity with language in a real, meaningful moment. That exposure adds up — and it matters.</p>
+    <p>Every time you model on the core board, students get another opportunity to hear a word, see it paired with a symbol, and build familiarity with language in a real, meaningful moment. That exposure adds up, and it matters.</p>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
@@ -324,46 +324,46 @@
     // ── Tasks ─────────────────────────────────────────────────────────────
     const tasks = [
       {
-        title:      "Task 1 — Morning Circle",
+        title:      "Task 1: Morning Circle",
         instruction:"It's morning circle time and you look out the window together to check the weather on a typical winter morning. What can you comment?",
         highlight:  ["cold", "problem", "what"],
         correct:    "cold",
-        successMsg: "✅ 'It looks cold today!' — a simple, observable comment that connects the symbol to the real world right in front of them.",
+        successMsg: "✅ 'It looks cold today!', a simple, observable comment that connects the symbol to the real world right in front of them.",
         wrongMsgs: {
-          "problem": "🤔 'Problem' is one way to interpret the weather! Parallel talk tends to lean toward describing what we observe rather than our reaction to it — is there a word that captures what you can actually see outside?",
-          "what":    "💭 Asking 'what' invites the student to find and recall language — commenting gives it to them. For parallel talk, a simple statement tends to be more supportive.",
+          "problem": "🤔 'Problem' is one way to interpret the weather! Parallel talk tends to lean toward describing what we observe rather than our reaction to it, is there a word that captures what you can actually see outside?",
+          "what":    "💭 Asking 'what' invites the student to find and recall language, commenting gives it to them. For parallel talk, a simple statement tends to be more supportive.",
         },
       },
       {
-        title:      "Task 2 — Shared Reading",
+        title:      "Task 2: Shared Reading",
         instruction:"The class is doing shared reading and you turn the page to a picture of a giant fluffy monkey. What can you comment?",
         highlight:  ["big", "look", "happy"],
         correct:    "big",
-        successMsg: "✅ 'That's a big monkey!' — simple, descriptive, and right there on the page. A great example of a declarative comment.",
+        successMsg: "✅ 'That's a big monkey!', simple, descriptive, and right there on the page. A great example of a declarative comment.",
         wrongMsgs: {
-          "look":  "👀 'Look' is a great way to draw students in! It's more of an attention-getter than a descriptive comment though — what might you say once they're already looking?",
-          "happy": "💛 'Happy' is a lovely comment — is there an even more obvious word for what you can see on this page?",
+          "look":  "👀 'Look' is a great way to draw students in! It's more of an attention-getter than a descriptive comment though, what might you say once they're already looking?",
+          "happy": "💛 'Happy' is a lovely comment, is there an even more obvious word for what you can see on this page?",
         },
       },
       {
-        title:      "Task 3 — Morning Tea",
+        title:      "Task 3: Morning Tea",
         instruction:"You're supervising students during morning tea. The goal is to narrate the moment and model social, conversational language. Which word fits parallel talk best?",
         highlight:  ["like", "open", "dirty"],
         correct:    "like",
-        successMsg: "✅ 'Like' is a lovely parallel talk comment — 'I like this', 'Lily likes peanut butter' — warm and social, with no pressure attached.",
+        successMsg: "✅ 'Like' is a lovely parallel talk comment, 'I like this', 'Lily likes peanut butter', warm and social, with no pressure attached.",
         wrongMsgs: {
-          "open":  "💭 'Open' is a really useful word at morning tea! It tends to work more as a helpful prompt though — have a think about a word that comments on what's happening in the moment.",
-          "dirty": "🤔 Morning tea is a social moment — drawing attention to mess can shift the tone away from what we're trying to model. Is there a word that better reflects what's happening around the table?",
+          "open":  "💭 'Open' is a really useful word at morning tea! It tends to work more as a helpful prompt though, have a think about a word that comments on what's happening in the moment.",
+          "dirty": "🤔 Morning tea is a social moment, drawing attention to mess can shift the tone away from what we're trying to model. Is there a word that better reflects what's happening around the table?",
         },
       },
       {
-        title:      "Task 4 — Art Time",
+        title:      "Task 4: Art Time",
         instruction:"You're doing art with a small group and every student has used pink paint. What can you comment?",
         highlight:  ["same", "good", "make"],
         correct:    "same",
-        successMsg: "✅ 'You all used the same colour!' — noticing what students have in common is a warm, natural comment that builds connection and models descriptive language.",
+        successMsg: "✅ 'You all used the same colour!', noticing what students have in common is a warm, natural comment that builds connection and models descriptive language.",
         wrongMsgs: {
-          "good": "👍 'Good' is encouraging, but it's a praise word rather than a description — what can you observe about what they've done?",
+          "good": "👍 'Good' is encouraging, but it's a praise word rather than a description, what can you observe about what they've done?",
           "make": "🎨 'Make' works in art! See if there's a word that comments on what you're noticing about the group.",
         },
       },
@@ -488,7 +488,7 @@
         allCells.forEach(b => b.classList.remove('task-hl-selected'));
         btn.classList.add('task-hl-selected');
         selectedWord = key;
-        selectedWordDisplay.textContent = `✏️ "${key}" selected — now write a question you could model with this word`;
+        selectedWordDisplay.textContent = `✏️ "${key}" selected, now write a question you could model with this word`;
         selectedWordDisplay.classList.add('picked');
         updateSubmitBtn();
         return;
@@ -506,7 +506,7 @@
         btnNext.classList.add('show');
         fireConfetti();
       } else {
-        const msg = (t.wrongMsgs && t.wrongMsgs[key]) || 'Not quite — have another look!';
+        const msg = (t.wrongMsgs && t.wrongMsgs[key]) || 'Not quite, have another look!';
         elFeedback.style.color = '#c62828';
         elFeedback.textContent = msg;
         btn.classList.add('wrong-flash');
