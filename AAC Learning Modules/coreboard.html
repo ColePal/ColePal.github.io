@@ -80,18 +80,32 @@
     /* Onboarding panel */
     #ob-panel {
       position: fixed;
-      bottom: 24px;
+      bottom: 16px;
       left: 50%;
       transform: translateX(-50%);
       background: #fff;
       border-radius: 14px;
-      padding: 20px 26px;
+      padding: 12px 20px 14px;
       max-width: 480px;
       width: 92%;
       box-shadow: 0 12px 40px rgba(0,0,0,0.55);
       z-index: 300;
       text-align: center;
     }
+
+    #panel-toggle {
+      position: absolute;
+      top: 8px; right: 10px;
+      background: none; border: none;
+      font-size: 1rem; cursor: pointer;
+      color: #aaa; line-height: 1;
+      padding: 2px 4px;
+    }
+    #panel-toggle:hover { color: #555; }
+
+    #panel-body { overflow: hidden; }
+    #ob-panel.collapsed #panel-body { display: none; }
+    #ob-panel.collapsed { padding: 10px 20px; }
 
     #ob-counter { font-size: 0.78rem; color: #999; margin-bottom: 8px; }
 
@@ -121,11 +135,14 @@
 
   <!-- Onboarding panel -->
   <div id="ob-panel">
+    <button id="panel-toggle" title="Hide panel">▼</button>
+    <div id="panel-body">
     <div id="ob-counter"></div>
     <div id="ob-dots"></div>
     <h2 id="ob-title"></h2>
     <p  id="ob-desc"></p>
     <button id="btn-next">Next →</button>
+    </div>
   </div>
 
   <script>
@@ -298,6 +315,15 @@
     });
 
     showStep(0);
+
+    // Panel collapse toggle
+    const obPanel     = document.getElementById('ob-panel');
+    const panelToggle = document.getElementById('panel-toggle');
+    panelToggle.addEventListener('click', () => {
+      const collapsed = obPanel.classList.toggle('collapsed');
+      panelToggle.textContent = collapsed ? '▲' : '▼';
+      panelToggle.title = collapsed ? 'Show instructions' : 'Hide panel';
+    });
   </script>
 
   <!-- Audio unlock: shown only when embedded in an iframe -->
