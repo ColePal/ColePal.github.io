@@ -39,56 +39,64 @@
       width: 100%; height: 100%;
     }
 
+    /* Dim layer sits at z-index 1 inside the overlay */
+    #overlay::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      pointer-events: none;
+      z-index: 1;
+    }
+
     /* Base cell */
     .cell {
       position: absolute;
       background: transparent;
       border: none;
-      cursor: pointer;
+      cursor: default;
       border-radius: 4px;
-      transition: background 0.08s ease;
       padding: 0;
       pointer-events: none;
+      /* no z-index = sits below the dim layer */
     }
 
-    /* Task mode – dim entire board */
-    #overlay::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: rgba(0,0,0,0.62);
-      pointer-events: none;
-      z-index: 1;
-      transition: opacity 0.3s;
-    }
-
-    /* Highlighted cells sit above the dim */
+    /*
+      Highlighted cells:
+      - z-index 2 puts them above the dim layer
+      - backdrop-filter brightens the board content showing through them,
+        counteracting the dark overlay beneath
+    */
     .cell.task-hl {
       z-index: 2;
       pointer-events: auto;
+      cursor: pointer;
+      backdrop-filter: brightness(2.6);
+      -webkit-backdrop-filter: brightness(2.6);
       animation: glow 1.5s ease-in-out infinite;
     }
 
     @keyframes glow {
       0%,100% {
-        box-shadow: 0 0 0 3px rgba(255,255,255,0.95), 0 0 16px rgba(255,255,255,0.5);
-        background: rgba(255,255,255,0.18);
+        box-shadow: 0 0 0 3px rgba(255,255,255,0.95), 0 0 16px rgba(255,255,255,0.55);
+        background: rgba(255,255,255,0.12);
       }
       50% {
         box-shadow: 0 0 0 6px rgba(255,255,255,0.35), 0 0 30px rgba(255,255,255,0.2);
-        background: rgba(255,255,255,0.06);
+        background: rgba(255,255,255,0.04);
       }
     }
 
-    .cell.flash  { background: rgba(255,220,0,0.45) !important; }
+    .cell.flash  { background: rgba(255,220,0,0.5) !important; }
 
     .cell.wrong-flash {
-      animation: wrong 0.45s ease !important;
+      animation: wrong 0.45s ease forwards !important;
     }
     @keyframes wrong {
-      0%,100% { background: rgba(220,40,40,0.55); transform: translateX(0); }
-      25%      { transform: translateX(-5px); }
-      75%      { transform: translateX(5px); }
+      0%   { background: rgba(210,40,40,0.6); transform: translateX(0); }
+      25%  { transform: translateX(-6px); }
+      75%  { transform: translateX(6px); }
+      100% { background: rgba(255,255,255,0.12); transform: translateX(0); }
     }
 
     /* ── Task panel ─────────────────────────────────── */
@@ -107,7 +115,7 @@
       text-align: center;
     }
 
-    #task-counter { font-size: 0.75rem; color: #aaa; margin-bottom: 6px; letter-spacing: 0.04em; text-transform: uppercase; }
+    #task-counter { font-size: 0.74rem; color: #aaa; margin-bottom: 6px; letter-spacing: 0.05em; text-transform: uppercase; }
 
     #prog-wrap { width: 100%; height: 6px; background: #eee; border-radius: 3px; margin-bottom: 14px; }
     #prog-bar  { height: 6px; background: #1565C0; border-radius: 3px; transition: width 0.5s ease; width: 0%; }
@@ -116,10 +124,11 @@
     #task-instr    { font-size: 0.88rem; color: #444; line-height: 1.6; margin-bottom: 14px; }
 
     #task-feedback {
-      min-height: 1.4em;
-      font-size: 0.88rem;
+      min-height: 2em;
+      font-size: 0.86rem;
       font-weight: 600;
       margin-bottom: 12px;
+      line-height: 1.45;
       transition: color 0.2s;
     }
 
@@ -133,7 +142,7 @@
     #btn-next:hover  { background: #0D47A1; }
     #btn-next.show   { display: inline-block; }
 
-    /* ── All-done screen ────────────────────────────── */
+    /* ── Completion screen ──────────────────────────── */
     #done-screen {
       display: none;
       position: fixed;
@@ -172,8 +181,8 @@
   </div>
 
   <div id="done-screen">
-    <h1>🎉 Tutorial Complete!</h1>
-    <p>Amazing work! You've finished all the modelling tasks. You're ready to start using the core board with your students.</p>
+    <h1>🎉 Section Complete!</h1>
+    <p>Great work making it through this set of tasks! Keep practising — the more you model on the core board, the more natural it becomes for you and your students.</p>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
@@ -205,16 +214,29 @@
     ];
 
     // ── Tasks ─────────────────────────────────────────────────────────────
-    // highlight: words to surface; correct: the right answer
     const tasks = [
       {
         title:      "Task 1 — Transitioning to Lunch",
         instruction:"It's time to move your students from circle time to the table for lunch. Which word would you model on the core board to help them understand and prepare for the transition?",
         highlight:  ["feel", "ready", "fast"],
         correct:    "ready",
-        successMsg: "✅ Yes! Modelling 'ready' helps students anticipate transitions and feel prepared — one of the most useful words in daily routines!",
+        successMsg: "✅ Yes! Modelling 'ready' helps students anticipate transitions and feel calm and prepared — one of the most powerful words in daily routines!",
+        wrongMsgs: {
+          "feel": "💭 'Feel' is a valuable word, but it doesn't signal a transition. Think about what tells someone it's almost time to move!",
+          "fast": "⚠️ 'Fast' can add pressure and make transitions feel stressful. We want students to feel calm and prepared — try again!",
+        },
       },
-      // ← more tasks will be added here
+      {
+        title:      "Task 2 — Puzzle Time",
+        instruction:"You're doing a puzzle with a student and they're guiding your hand to the pieces. Which word would you model to encourage their independence and give them the confidence to give it a go themselves?",
+        highlight:  ["you", "stop", "fast"],
+        correct:    "you",
+        successMsg: "✅ Exactly! Modelling 'you' — as in 'you do it' or 'your turn' — hands the power back to the student and builds real confidence in their own abilities!",
+        wrongMsgs: {
+          "stop": "🚫 'Stop' can feel discouraging and even a little demeaning — it shuts down engagement rather than building it. Think about what invites them to try!",
+          "fast": "⚠️ 'Fast' adds pressure and dismisses their effort. We want to support their pace and confidence, not rush them — try again!",
+        },
+      },
     ];
 
     // ── Build overlay cells ───────────────────────────────────────────────
@@ -222,9 +244,9 @@
     const allCells = [];
 
     function makeCell(displayWord, styleObj) {
-      const btn  = document.createElement('button');
-      btn.className  = 'cell';
-      const key  = displayWord.split(',')[0].trim().toLowerCase();
+      const btn = document.createElement('button');
+      btn.className = 'cell';
+      const key = displayWord.split(',')[0].trim().toLowerCase();
       btn.dataset.key = key;
       Object.assign(btn.style, styleObj);
       btn.setAttribute('aria-label', displayWord);
@@ -262,8 +284,8 @@
     }
 
     // ── Task engine ───────────────────────────────────────────────────────
-    let taskIdx   = 0;
-    let answered  = false;
+    let taskIdx  = 0;
+    let answered = false;
 
     const elCounter  = document.getElementById('task-counter');
     const elProgBar  = document.getElementById('prog-bar');
@@ -281,10 +303,8 @@
       elTitle.textContent    = t.title;
       elInstr.textContent    = t.instruction;
       elFeedback.textContent = '';
-      elFeedback.style.color = '#1565C0';
       btnNext.classList.remove('show');
 
-      // Reset then apply highlights
       allCells.forEach(b => b.classList.remove('task-hl'));
       const hlSet = new Set(t.highlight.map(w => w.toLowerCase()));
       allCells.forEach(b => {
@@ -297,6 +317,7 @@
       speak(key);
 
       const t = tasks[taskIdx];
+
       if (key === t.correct.toLowerCase()) {
         answered = true;
         btn.classList.add('flash');
@@ -304,14 +325,14 @@
 
         elFeedback.style.color = '#2e7d32';
         elFeedback.textContent = t.successMsg;
-
         elProgBar.style.width  = `${((taskIdx + 1) / tasks.length) * 100}%`;
         btnNext.textContent    = taskIdx + 1 < tasks.length ? 'Next Task →' : 'Finish 🎉';
         btnNext.classList.add('show');
         fireConfetti();
       } else {
+        const msg = (t.wrongMsgs && t.wrongMsgs[key]) || 'Not quite — have another look!';
         elFeedback.style.color = '#c62828';
-        elFeedback.textContent = 'Not quite — have another look!';
+        elFeedback.textContent = msg;
         btn.classList.add('wrong-flash');
         setTimeout(() => btn.classList.remove('wrong-flash'), 500);
       }
@@ -336,7 +357,6 @@
       });
     }
 
-    // ── Kick off ──────────────────────────────────────────────────────────
     loadTask(0);
   </script>
 </body>
