@@ -415,7 +415,7 @@
     }
 
     function updateSubmitBtn() {
-      btnSubmit.disabled = !(selectedWord && reflectionInput.value.trim().length > 0);
+      btnSubmit.disabled = !(selectedWord && reflectionInput.value.trim().length >= 10);
     }
 
     reflectionInput.addEventListener('input', updateSubmitBtn);
