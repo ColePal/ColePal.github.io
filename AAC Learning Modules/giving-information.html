@@ -301,7 +301,7 @@
         title: "Interacting with Others",
         desc:  "These phrases support turn-taking and requesting help. They are some of the most empowering words on the board.",
       },
-      { type:"phrase", display:"help me",   words:["help","i"],  labels:["help","me"]   },
+      { type:"phrase", display:"help me",   words:["help","i"],  labels:["help","me"],  ttsMap:{"i":"me"} },
       { type:"phrase", display:"your turn", words:["you","turn"], labels:["your","turn"] },
     ];
 
@@ -346,9 +346,9 @@
 
     // TTS overrides
     const speakAs = { "i": "I", "look": "see", "now": "now it's time", "hear": "listen" };
-    function speak(key) {
+    function speak(key, override) {
       window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(speakAs[key] || key);
+      const u = new SpeechSynthesisUtterance(override || speakAs[key] || key);
       u.rate = 0.88;
       window.speechSynthesis.speak(u);
     }
@@ -475,7 +475,7 @@
       const item = content[idx];
       if (!item || item.type !== 'phrase') return;
 
-      speak(key);
+      speak(key, item.ttsMap && item.ttsMap[key]);
 
       if (key === item.words[wordStep]) {
         btn.classList.add('flash');
