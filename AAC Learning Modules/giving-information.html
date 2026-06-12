@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Core Board – Giving Information</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #1a1a2e;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+      gap: 12px;
+    }
+
+    #board-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 960px;
+      user-select: none;
+    }
+
+    #board-img { display: block; width: 100%; height: auto; }
+
+    #overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+    }
+
+    #overlay::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .cell {
+      position: absolute;
+      background: transparent;
+      border: none;
+      cursor: default;
+      border-radius: 4px;
+      padding: 0;
+      pointer-events: none;
+    }
+
+    .cell.target {
+      z-index: 2;
+      pointer-events: auto;
+      cursor: pointer;
+      backdrop-filter: brightness(2.6);
+      -webkit-backdrop-filter: brightness(2.6);
+      animation: glow 1.5s ease-in-out infinite;
+    }
+
+    @keyframes glow {
+      0%,100% {
+        box-shadow: 0 0 0 3px rgba(255,255,255,0.95), 0 0 16px rgba(255,255,255,0.55);
+        background: rgba(255,255,255,0.12);
+      }
+      50% {
+        box-shadow: 0 0 0 6px rgba(255,255,255,0.35), 0 0 30px rgba(255,255,255,0.2);
+        background: rgba(255,255,255,0.04);
+      }
+    }
+
+    .cell.flash { background: rgba(255,220,0,0.5) !important; }
+
+    /* Panel */
+    #panel {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px 26px 22px;
+      max-width: 520px;
+      width: 93%;
+      box-shadow: 0 14px 44px rgba(0,0,0,0.6);
+      z-index: 300;
+      text-align: center;
+    }
+
+    #prog-wrap { width: 100%; height: 6px; background: #eee; border-radius: 3px; margin-bottom: 16px; }
+    #prog-bar  { height: 6px; background: #4527A0; border-radius: 3px; transition: width 0.5s ease; width: 0%; }
+
+    /* Category card */
+    #cat-card { display: none; }
+    #cat-icon  { font-size: 2rem; margin-bottom: 8px; }
+    #cat-title { font-size: 1.05rem; color: #111; margin-bottom: 6px; font-weight: 700; }
+    #cat-desc  { font-size: 0.86rem; color: #555; line-height: 1.6; margin-bottom: 16px; }
+    #btn-cat-next {
+      background: #4527A0; color: #fff; border: none;
+      padding: 10px 28px; border-radius: 9px;
+      font-size: 0.9rem; font-weight: 700; cursor: pointer;
+      transition: background 0.15s;
+    }
+    #btn-cat-next:hover { background: #311B92; }
+
+    /* Phrase card */
+    #phrase-card { display: none; }
+
+    .phrase-display {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 12px;
+      letter-spacing: 0.01em;
+    }
+
+    .word-chips {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .chip {
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border: 2px solid transparent;
+      transition: all 0.25s;
+    }
+    .chip.done    { background: #E8F5E9; color: #2E7D32; border-color: #A5D6A7; }
+    .chip.current { background: #EDE7F6; color: #4527A0; border-color: #B39DDB; animation: chip-pulse 1.2s ease-in-out infinite; }
+    .chip.pending { background: #f5f5f5; color: #bbb;    border-color: #eee; }
+
+    @keyframes chip-pulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(69,39,160,0.3); }
+      50%      { box-shadow: 0 0 0 5px rgba(69,39,160,0); }
+    }
+
+    #tap-hint {
+      font-size: 0.84rem;
+      color: #777;
+      min-height: 1.4em;
+    }
+
+    /* Done screen */
+    #done-screen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #1a1a2e;
+      z-index: 600;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      text-align: center;
+      padding: 32px;
+      gap: 16px;
+    }
+    #done-screen.show { display: flex; }
+    #done-screen h1 { font-size: 2rem; }
+    #done-screen p  { font-size: 1rem; color: #bbb; max-width: 460px; line-height: 1.65; }
+  </style>
+</head>
+
+<body>
+  <div id="board-wrap">
+    <img id="board-img" src="coreboard.png" alt="AAC 77 Symbol Core Board" draggable="false">
+    <div id="overlay"></div>
+  </div>
+
+  <div id="panel">
+    <div id="prog-wrap"><div id="prog-bar"></div></div>
+
+    <div id="cat-card">
+      <div id="cat-icon"></div>
+      <h2 id="cat-title"></h2>
+      <p  id="cat-desc"></p>
+      <button id="btn-cat-next">Let's go →</button>
+    </div>
+
+    <div id="phrase-card">
+      <div class="phrase-display" id="phrase-display"></div>
+      <div class="word-chips"    id="word-chips"></div>
+      <div id="tap-hint"></div>
+    </div>
+  </div>
+
+  <div id="done-screen">
+    <h1>Ka pai! 🎉</h1>
+    <p>You have worked through all the phrases. Every time you model one of these on the board, students get to hear the language and see it connected to a symbol in a real moment.</p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  <script>
+    const IW = 1248, IH = 909, MAIN_H = 795, COLS = 11, ROWS = 7;
+    const cellW = 100 / COLS;
+    const cellH = (MAIN_H / IH) * (100 / ROWS);
+
+    const grid = [
+      ["I, me, my","it","who","what","am, is, are, be","when","be careful","all","some","that","this"],
+      ["he, she","we, they, us","not, don't","come","do, does, did","again","now, it's time","how","why","finish, all done","problem"],
+      ["you, your","drink","eat, taste","feel","get, got","late, later","ready","all gone","bad","big","clean"],
+      ["give, gave","go","hear, listen","help","like","where","away","cold","different","dirty","fast"],
+      ["look, see","make, made","open, close","play","put","here","there","good","happy","hot","little"],
+      ["read","say, tell","sit","stand","stop","in","out","more","sad","same","sick, sore"],
+      ["take","turn","wait","want","work","up","down","on","off","silly","slow"],
+    ];
+
+    const bottomRow = [
+      { word:"yes",    x1:206,  x2:313  },
+      { word:"one",    x1:324,  x2:434  },
+      { word:"two",    x1:443,  x2:553  },
+      { word:"three",  x1:562,  x2:672  },
+      { word:"four",   x1:681,  x2:791  },
+      { word:"five",   x1:800,  x2:911  },
+      { word:"no",     x1:924,  x2:1030 },
+      { word:"toilet", x1:1063, x2:1169 },
+    ];
+
+    // Content: alternating category headers and phrases
+    const content = [
+      {
+        type:  "category",
+        icon:  "📅",
+        title: "Introducing Activities",
+        desc:  "Use these phrases to let a student know what is coming next. Modelling them consistently helps students anticipate routines and feel more secure.",
+      },
+      { type:"phrase", display:"time to eat",  words:["now","eat"],   labels:["now / it's time","eat"]  },
+      { type:"phrase", display:"time to play", words:["now","play"],  labels:["now / it's time","play"] },
+      { type:"phrase", display:"time to work", words:["now","work"],  labels:["now / it's time","work"] },
+      {
+        type:  "category",
+        icon:  "👉",
+        title: "Giving Instructions",
+        desc:  "Short, clear phrases that guide students through transitions and movement. Pair them with a gesture or action for extra clarity.",
+      },
+      { type:"phrase", display:"go in",    words:["go","in"],    labels:["go","in"]    },
+      { type:"phrase", display:"go out",   words:["go","out"],   labels:["go","out"]   },
+      { type:"phrase", display:"stand up", words:["stand","up"], labels:["stand","up"] },
+      {
+        type:  "category",
+        icon:  "💬",
+        title: "Sharing Thoughts",
+        desc:  "These phrases model how to express what we notice, feel, or enjoy. Using them throughout the day shows students how to comment on their own experience.",
+      },
+      { type:"phrase", display:"I like", words:["i","like"], labels:["I","like"] },
+      { type:"phrase", display:"I see",  words:["i","look"], labels:["I","see"]  },
+      { type:"phrase", display:"I feel", words:["i","feel"], labels:["I","feel"] },
+      {
+        type:  "category",
+        icon:  "🤝",
+        title: "Interacting with Others",
+        desc:  "These phrases support turn-taking and requesting help. They are some of the most empowering words on the board.",
+      },
+      { type:"phrase", display:"help me",   words:["help","i"],  labels:["help","me"]   },
+      { type:"phrase", display:"your turn", words:["you","turn"], labels:["your","turn"] },
+    ];
+
+    const totalPhrases   = content.filter(c => c.type === 'phrase').length;
+    let   phrasesComplete = 0;
+
+    // Build overlay cells
+    const overlay  = document.getElementById('overlay');
+    const allCells = [];
+
+    function makeCell(displayWord, styleObj) {
+      const btn = document.createElement('button');
+      btn.className = 'cell';
+      const key = displayWord.split(',')[0].trim().toLowerCase();
+      btn.dataset.key = key;
+      Object.assign(btn.style, styleObj);
+      btn.setAttribute('aria-label', displayWord);
+      btn.addEventListener('click', () => onCellClick(btn, key));
+      allCells.push(btn);
+      overlay.appendChild(btn);
+    }
+
+    grid.forEach((row, r) => row.forEach((word, c) => {
+      makeCell(word, {
+        left:   `${(c * cellW).toFixed(3)}%`,
+        top:    `${(r * cellH).toFixed(3)}%`,
+        width:  `${cellW.toFixed(3)}%`,
+        height: `${cellH.toFixed(3)}%`,
+      });
+    }));
+
+    const btmTop = `${(MAIN_H / IH * 100).toFixed(3)}%`;
+    const btmH   = `${((IH - MAIN_H) / IH * 100).toFixed(3)}%`;
+    bottomRow.forEach(({ word, x1, x2 }) => {
+      makeCell(word, {
+        left:   `${(x1 / IW * 100).toFixed(3)}%`,
+        top:    btmTop,
+        width:  `${((x2 - x1) / IW * 100).toFixed(3)}%`,
+        height: btmH,
+      });
+    });
+
+    // TTS overrides
+    const speakAs = { "i": "I", "look": "see", "now": "now it's time" };
+    function speak(key) {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(speakAs[key] || key);
+      u.rate = 0.88;
+      window.speechSynthesis.speak(u);
+    }
+
+    // State
+    let idx      = 0;
+    let wordStep = 0;
+
+    // DOM
+    const progBar    = document.getElementById('prog-bar');
+    const catCard    = document.getElementById('cat-card');
+    const phraseCard = document.getElementById('phrase-card');
+    const tapHint    = document.getElementById('tap-hint');
+
+    function updateProgress() {
+      progBar.style.width = `${(phrasesComplete / totalPhrases) * 100}%`;
+    }
+
+    function setTarget(key) {
+      allCells.forEach(b => b.classList.remove('target'));
+      allCells.forEach(b => { if (b.dataset.key === key) b.classList.add('target'); });
+    }
+
+    function clearTarget() {
+      allCells.forEach(b => b.classList.remove('target'));
+    }
+
+    function renderChips(item, step) {
+      const container = document.getElementById('word-chips');
+      container.innerHTML = '';
+      item.words.forEach((_, i) => {
+        const chip = document.createElement('span');
+        chip.className = 'chip ' + (i < step ? 'done' : i === step ? 'current' : 'pending');
+        chip.textContent = item.labels[i];
+        container.appendChild(chip);
+      });
+    }
+
+    function loadItem(i) {
+      const item = content[i];
+      if (!item) {
+        clearTarget();
+        document.getElementById('done-screen').classList.add('show');
+        fireConfetti(); fireConfetti();
+        return;
+      }
+
+      if (item.type === 'category') {
+        clearTarget();
+        catCard.style.display    = 'block';
+        phraseCard.style.display = 'none';
+        document.getElementById('cat-icon').textContent  = item.icon;
+        document.getElementById('cat-title').textContent = item.title;
+        document.getElementById('cat-desc').textContent  = item.desc;
+      } else {
+        wordStep = 0;
+        catCard.style.display    = 'none';
+        phraseCard.style.display = 'block';
+        document.getElementById('phrase-display').textContent = item.display;
+        renderChips(item, 0);
+        tapHint.textContent = `Find and tap: "${item.labels[0]}"`;
+        setTarget(item.words[0]);
+      }
+    }
+
+    document.getElementById('btn-cat-next').addEventListener('click', () => {
+      idx++;
+      loadItem(idx);
+    });
+
+    function onCellClick(btn, key) {
+      const item = content[idx];
+      if (!item || item.type !== 'phrase') return;
+
+      speak(key);
+
+      if (key === item.words[wordStep]) {
+        btn.classList.add('flash');
+        setTimeout(() => btn.classList.remove('flash'), 300);
+
+        wordStep++;
+        if (wordStep >= item.words.length) {
+          phrasesComplete++;
+          updateProgress();
+          renderChips(item, wordStep);
+          tapHint.textContent = 'Nice one!';
+          clearTarget();
+          fireConfetti();
+          setTimeout(() => { idx++; loadItem(idx); }, 900);
+        } else {
+          renderChips(item, wordStep);
+          tapHint.textContent = `Now find: "${item.labels[wordStep]}"`;
+          setTarget(item.words[wordStep]);
+        }
+      }
+    }
+
+    function fireConfetti() {
+      confetti({
+        particleCount: 80,
+        spread: 70,
+        origin: { y: 0.55 },
+        colors: ['#4527A0','#7E57C2','#FDD835','#66BB6A','#EF5350','#FF7043'],
+      });
+    }
+
+    updateProgress();
+    loadItem(0);
+  </script>
+</body>
+</html>
