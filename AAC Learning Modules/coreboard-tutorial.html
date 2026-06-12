@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Core Board – Modelling Tutorial</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #1a1a2e;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+      gap: 12px;
+    }
+
+    h1 { color: #fff; font-size: 1.2rem; letter-spacing: 0.02em; }
+
+    #board-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 960px;
+      user-select: none;
+    }
+
+    #board-img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    #overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+    }
+
+    /* Base cell */
+    .cell {
+      position: absolute;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background 0.08s ease;
+      padding: 0;
+      pointer-events: none;
+    }
+
+    /* Task mode – dim entire board */
+    #overlay::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.62);
+      pointer-events: none;
+      z-index: 1;
+      transition: opacity 0.3s;
+    }
+
+    /* Highlighted cells sit above the dim */
+    .cell.task-hl {
+      z-index: 2;
+      pointer-events: auto;
+      animation: glow 1.5s ease-in-out infinite;
+    }
+
+    @keyframes glow {
+      0%,100% {
+        box-shadow: 0 0 0 3px rgba(255,255,255,0.95), 0 0 16px rgba(255,255,255,0.5);
+        background: rgba(255,255,255,0.18);
+      }
+      50% {
+        box-shadow: 0 0 0 6px rgba(255,255,255,0.35), 0 0 30px rgba(255,255,255,0.2);
+        background: rgba(255,255,255,0.06);
+      }
+    }
+
+    .cell.flash  { background: rgba(255,220,0,0.45) !important; }
+
+    .cell.wrong-flash {
+      animation: wrong 0.45s ease !important;
+    }
+    @keyframes wrong {
+      0%,100% { background: rgba(220,40,40,0.55); transform: translateX(0); }
+      25%      { transform: translateX(-5px); }
+      75%      { transform: translateX(5px); }
+    }
+
+    /* ── Task panel ─────────────────────────────────── */
+    #task-panel {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px 26px 22px;
+      max-width: 520px;
+      width: 93%;
+      box-shadow: 0 14px 44px rgba(0,0,0,0.6);
+      z-index: 300;
+      text-align: center;
+    }
+
+    #task-counter { font-size: 0.75rem; color: #aaa; margin-bottom: 6px; letter-spacing: 0.04em; text-transform: uppercase; }
+
+    #prog-wrap { width: 100%; height: 6px; background: #eee; border-radius: 3px; margin-bottom: 14px; }
+    #prog-bar  { height: 6px; background: #1565C0; border-radius: 3px; transition: width 0.5s ease; width: 0%; }
+
+    #task-panel h2 { font-size: 1rem; color: #111; margin-bottom: 8px; }
+    #task-instr    { font-size: 0.88rem; color: #444; line-height: 1.6; margin-bottom: 14px; }
+
+    #task-feedback {
+      min-height: 1.4em;
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+      transition: color 0.2s;
+    }
+
+    #btn-next {
+      display: none;
+      background: #1565C0; color: #fff; border: none;
+      padding: 11px 30px; border-radius: 9px;
+      font-size: 0.92rem; font-weight: 700; cursor: pointer;
+      transition: background 0.15s;
+    }
+    #btn-next:hover  { background: #0D47A1; }
+    #btn-next.show   { display: inline-block; }
+
+    /* ── All-done screen ────────────────────────────── */
+    #done-screen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #1a1a2e;
+      z-index: 600;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      text-align: center;
+      padding: 32px;
+      gap: 16px;
+    }
+    #done-screen.show { display: flex; }
+    #done-screen h1  { font-size: 2rem; }
+    #done-screen p   { font-size: 1rem; color: #bbb; max-width: 460px; line-height: 1.65; }
+  </style>
+</head>
+
+<body>
+  <h1>Core Board — Modelling Tutorial</h1>
+
+  <div id="board-wrap">
+    <img id="board-img" src="coreboard.png" alt="AAC 77 Symbol Core Board" draggable="false">
+    <div id="overlay"></div>
+  </div>
+
+  <div id="task-panel">
+    <div id="task-counter"></div>
+    <div id="prog-wrap"><div id="prog-bar"></div></div>
+    <h2 id="task-title"></h2>
+    <p  id="task-instr"></p>
+    <div id="task-feedback"></div>
+    <button id="btn-next">Next Task →</button>
+  </div>
+
+  <div id="done-screen">
+    <h1>🎉 Tutorial Complete!</h1>
+    <p>Amazing work! You've finished all the modelling tasks. You're ready to start using the core board with your students.</p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  <script>
+    // ── Board geometry ────────────────────────────────────────────────────
+    const IW = 1248, IH = 909, MAIN_H = 795, COLS = 11, ROWS = 7;
+    const cellW = 100 / COLS;
+    const cellH = (MAIN_H / IH) * (100 / ROWS);
+
+    const grid = [
+      ["I, me, my","it","who","what","am, is, are, be","when","be careful","all","some","that","this"],
+      ["he, she","we, they, us","not, don't","come","do, does, did","again","now, it's time","how","why","finish, all done","problem"],
+      ["you, your","drink","eat, taste","feel","get, got","late, later","ready","all gone","bad","big","clean"],
+      ["give, gave","go","hear, listen","help","like","where","away","cold","different","dirty","fast"],
+      ["look, see","make, made","open, close","play","put","here","there","good","happy","hot","little"],
+      ["read","say, tell","sit","stand","stop","in","out","more","sad","same","sick, sore"],
+      ["take","turn","wait","want","work","up","down","on","off","silly","slow"],
+    ];
+
+    const bottomRow = [
+      { word:"yes",    x1:206,  x2:313  },
+      { word:"one",    x1:324,  x2:434  },
+      { word:"two",    x1:443,  x2:553  },
+      { word:"three",  x1:562,  x2:672  },
+      { word:"four",   x1:681,  x2:791  },
+      { word:"five",   x1:800,  x2:911  },
+      { word:"no",     x1:924,  x2:1030 },
+      { word:"toilet", x1:1063, x2:1169 },
+    ];
+
+    // ── Tasks ─────────────────────────────────────────────────────────────
+    // highlight: words to surface; correct: the right answer
+    const tasks = [
+      {
+        title:      "Task 1 — Transitioning to Lunch",
+        instruction:"It's time to move your students from circle time to the table for lunch. Which word would you model on the core board to help them understand and prepare for the transition?",
+        highlight:  ["feel", "ready", "fast"],
+        correct:    "ready",
+        successMsg: "✅ Yes! Modelling 'ready' helps students anticipate transitions and feel prepared — one of the most useful words in daily routines!",
+      },
+      // ← more tasks will be added here
+    ];
+
+    // ── Build overlay cells ───────────────────────────────────────────────
+    const overlay  = document.getElementById('overlay');
+    const allCells = [];
+
+    function makeCell(displayWord, styleObj) {
+      const btn  = document.createElement('button');
+      btn.className  = 'cell';
+      const key  = displayWord.split(',')[0].trim().toLowerCase();
+      btn.dataset.key = key;
+      Object.assign(btn.style, styleObj);
+      btn.setAttribute('aria-label', displayWord);
+      btn.addEventListener('click', () => onCellClick(btn, key));
+      allCells.push(btn);
+      overlay.appendChild(btn);
+    }
+
+    grid.forEach((row, r) => row.forEach((word, c) => {
+      makeCell(word, {
+        left:   `${(c * cellW).toFixed(3)}%`,
+        top:    `${(r * cellH).toFixed(3)}%`,
+        width:  `${cellW.toFixed(3)}%`,
+        height: `${cellH.toFixed(3)}%`,
+      });
+    }));
+
+    const btmTop = `${(MAIN_H / IH * 100).toFixed(3)}%`;
+    const btmH   = `${((IH - MAIN_H) / IH * 100).toFixed(3)}%`;
+    bottomRow.forEach(({ word, x1, x2 }) => {
+      makeCell(word, {
+        left:   `${(x1 / IW * 100).toFixed(3)}%`,
+        top:    btmTop,
+        width:  `${((x2 - x1) / IW * 100).toFixed(3)}%`,
+        height: btmH,
+      });
+    });
+
+    // ── Speech ────────────────────────────────────────────────────────────
+    function speak(word) {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(word);
+      u.rate = 0.88;
+      window.speechSynthesis.speak(u);
+    }
+
+    // ── Task engine ───────────────────────────────────────────────────────
+    let taskIdx   = 0;
+    let answered  = false;
+
+    const elCounter  = document.getElementById('task-counter');
+    const elProgBar  = document.getElementById('prog-bar');
+    const elTitle    = document.getElementById('task-title');
+    const elInstr    = document.getElementById('task-instr');
+    const elFeedback = document.getElementById('task-feedback');
+    const btnNext    = document.getElementById('btn-next');
+
+    function loadTask(i) {
+      answered = false;
+      const t = tasks[i];
+
+      elCounter.textContent  = `Task ${i + 1} of ${tasks.length}`;
+      elProgBar.style.width  = `${(i / tasks.length) * 100}%`;
+      elTitle.textContent    = t.title;
+      elInstr.textContent    = t.instruction;
+      elFeedback.textContent = '';
+      elFeedback.style.color = '#1565C0';
+      btnNext.classList.remove('show');
+
+      // Reset then apply highlights
+      allCells.forEach(b => b.classList.remove('task-hl'));
+      const hlSet = new Set(t.highlight.map(w => w.toLowerCase()));
+      allCells.forEach(b => {
+        if (hlSet.has(b.dataset.key)) b.classList.add('task-hl');
+      });
+    }
+
+    function onCellClick(btn, key) {
+      if (answered) return;
+      speak(key);
+
+      const t = tasks[taskIdx];
+      if (key === t.correct.toLowerCase()) {
+        answered = true;
+        btn.classList.add('flash');
+        setTimeout(() => btn.classList.remove('flash'), 300);
+
+        elFeedback.style.color = '#2e7d32';
+        elFeedback.textContent = t.successMsg;
+
+        elProgBar.style.width  = `${((taskIdx + 1) / tasks.length) * 100}%`;
+        btnNext.textContent    = taskIdx + 1 < tasks.length ? 'Next Task →' : 'Finish 🎉';
+        btnNext.classList.add('show');
+        fireConfetti();
+      } else {
+        elFeedback.style.color = '#c62828';
+        elFeedback.textContent = 'Not quite — have another look!';
+        btn.classList.add('wrong-flash');
+        setTimeout(() => btn.classList.remove('wrong-flash'), 500);
+      }
+    }
+
+    btnNext.addEventListener('click', () => {
+      taskIdx++;
+      if (taskIdx >= tasks.length) {
+        document.getElementById('done-screen').classList.add('show');
+        fireConfetti(); fireConfetti();
+        return;
+      }
+      loadTask(taskIdx);
+    });
+
+    function fireConfetti() {
+      confetti({
+        particleCount: 130,
+        spread: 80,
+        origin: { y: 0.55 },
+        colors: ['#1565C0','#42A5F5','#FDD835','#66BB6A','#EF5350','#AB47BC','#FF7043'],
+      });
+    }
+
+    // ── Kick off ──────────────────────────────────────────────────────────
+    loadTask(0);
+  </script>
+</body>
+</html>
