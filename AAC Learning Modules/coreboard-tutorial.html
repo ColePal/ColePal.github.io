@@ -173,6 +173,13 @@
     }
     #reflection-input:focus { outline: none; border-color: #1565C0; }
 
+    #reflection-hint {
+      font-size: 0.75rem;
+      color: #aaa;
+      margin-bottom: 10px;
+      text-align: left;
+    }
+
     #btn-submit-reflection {
       background: #1565C0; color: #fff; border: none;
       padding: 10px 26px; border-radius: 9px;
@@ -229,6 +236,7 @@
     <div id="reflection-area">
       <div id="selected-word-display">👆 Click one of the highlighted question words on the board to select it</div>
       <textarea id="reflection-input" rows="3" placeholder="e.g. 'What do you want?' or 'Where is it?'"></textarea>
+      <p id="reflection-hint">Minimum 10 characters required.</p>
       <button id="btn-submit-reflection" disabled>Submit ✓</button>
     </div>
 
