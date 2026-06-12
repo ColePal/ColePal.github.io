@@ -468,7 +468,8 @@
         wordStep = 0;
         catCard.style.display    = 'none';
         phraseCard.style.display = 'block';
-        document.getElementById('phrase-display').textContent = item.display;
+        document.getElementById('phrase-display').innerHTML =
+          `<span style="font-size:0.7rem;font-weight:600;color:#7B6FC8;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:4px;">Let's model</span>"${item.display}"`;
 
         const passLabel = document.getElementById('pass-label');
         if (phrasePass === 0) {
