@@ -391,7 +391,7 @@
     });
 
     // TTS overrides
-    const speakAs = { "i": "I", "look": "see", "now": "now it's time", "hear": "listen" };
+    const speakAs = { "i": "I.", "look": "see", "now": "now it's time", "hear": "listen" };
     function speak(key, override) {
       window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(override || speakAs[key] || key);
