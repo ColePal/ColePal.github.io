@@ -254,7 +254,7 @@
         desc:  "Blue symbols are descriptors, words like 'good', 'bad', 'big', 'hot', 'sad', 'different'. These give the students important information like 'finished', let them make choices or request 'more', or help them understand and share their feelings.",
         hl: 'blue' },
       { title: "You're ready! 🎉",
-        desc:  "Now, explore the coreboard yourself! Practice 'more', 'finished', 'my turn', 'go in', 'you ready?', or get creative with any other words or phrases you might be saying to the students. Click the symbols to hear them spoken out loud and get familiar with how to use the coreboard.",
+        desc:  "Now, explore the coreboard yourself! Try 'more', 'finished', 'your turn', 'go in', or any words and phrases you use with students throughout the day.<br><br>👉 Click the symbols to hear them spoken out loud and have a play with how you might use the coreboard.",
         hl: null },
     ];
 
@@ -276,7 +276,7 @@
     function showStep(i) {
       const s = steps[i];
       titleEl.textContent   = s.title;
-      descEl.textContent    = s.desc;
+      descEl.innerHTML      = s.desc;
       counterEl.textContent = `Step ${i + 1} of ${steps.length}`;
       nextBtn.textContent   = i === steps.length - 1 ? 'Start Exploring →' : 'Next →';
       document.querySelectorAll('.dot').forEach((d, idx) => d.classList.toggle('active', idx === i));
