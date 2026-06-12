@@ -74,6 +74,21 @@
 
     .cell.flash { background: rgba(255,220,0,0.5) !important; }
 
+    /* Independent pass: full board visible, no highlights */
+    body.pass-independent #overlay::before { opacity: 0; transition: opacity 0.4s ease; }
+    body.pass-independent .cell {
+      pointer-events: auto;
+      cursor: pointer;
+      z-index: 2;
+    }
+    body.pass-independent .cell.target {
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      animation: none;
+      box-shadow: none;
+      background: transparent;
+    }
+
     /* Panel */
     #panel {
       position: fixed;
@@ -442,6 +457,7 @@
 
       if (item.type === 'category') {
         phrasePass = 0;
+        document.body.classList.remove('pass-independent');
         clearTarget();
         catCard.style.display    = 'block';
         phraseCard.style.display = 'none';
@@ -456,17 +472,20 @@
 
         const passLabel = document.getElementById('pass-label');
         if (phrasePass === 0) {
+          document.body.classList.remove('pass-independent');
           passLabel.textContent = '🔵 With help';
           passLabel.className = 'guided';
           tapHint.textContent = `Find and tap: "${item.labels[0]}"`;
+          renderChips(item, 0);
+          setTarget(item.words[0]);
         } else {
+          document.body.classList.add('pass-independent');
           passLabel.textContent = '⭐ Now you try';
           passLabel.className = 'independent';
-          tapHint.textContent = 'Find the words for this phrase';
+          tapHint.textContent = 'Can you find the words yourself?';
+          renderChips(item, 0);
+          // No setTarget — board is fully visible, no highlights
         }
-
-        renderChips(item, 0);
-        setTarget(item.words[0]);
       }
     }
 
@@ -547,6 +566,7 @@
               loadItem(idx);
             }, 1200);
           } else {
+            document.body.classList.remove('pass-independent');
             phrasesComplete++;
             updateProgress();
             tapHint.textContent = 'Nice one!';
@@ -558,10 +578,11 @@
           renderChips(item, wordStep);
           if (phrasePass === 0) {
             tapHint.textContent = `Now find: "${item.labels[wordStep]}"`;
+            setTarget(item.words[wordStep]);
           } else {
             tapHint.textContent = 'Keep going!';
+            // No setTarget in independent mode
           }
-          setTarget(item.words[wordStep]);
         }
       }
     }
