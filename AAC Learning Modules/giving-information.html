@@ -159,24 +159,49 @@
     #pass-label.guided { color: #5C6BC0; }
     #pass-label.independent { color: #2E7D32; }
 
-    /* Done screen */
-    #done-screen {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: #1a1a2e;
-      z-index: 600;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      text-align: center;
-      padding: 32px;
-      gap: 16px;
+    /* Done screen — hidden, replaced by freeplay */
+    #done-screen { display: none; }
+
+    /* Freeplay */
+    body.freeplay #overlay::before { opacity: 0; transition: opacity 0.6s ease; }
+    body.freeplay .cell {
+      pointer-events: auto !important;
+      cursor: pointer;
+      z-index: 2;
     }
-    #done-screen.show { display: flex; }
-    #done-screen h1 { font-size: 2rem; }
-    #done-screen p  { font-size: 1rem; color: #bbb; max-width: 460px; line-height: 1.65; }
+    body.freeplay .cell:hover {
+      background: rgba(69,39,160,0.18);
+      border-radius: 4px;
+    }
+
+    #freeplay-card { display: none; }
+    #freeplay-title { font-size: 1rem; font-weight: 700; color: #111; margin-bottom: 4px; }
+    #freeplay-desc  { font-size: 0.82rem; color: #555; line-height: 1.55; margin-bottom: 12px; }
+
+    #freeplay-phrase {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+      min-height: 2.2em;
+      margin-bottom: 10px;
+    }
+    .fp-chip {
+      background: #EDE7F6; color: #4527A0;
+      border: 2px solid #B39DDB;
+      padding: 4px 12px; border-radius: 20px;
+      font-size: 0.82rem; font-weight: 600;
+    }
+    #freeplay-empty {
+      font-size: 0.8rem; color: #bbb; font-style: italic;
+    }
+    #btn-fp-clear {
+      background: transparent; color: #aaa;
+      border: 1px solid #ddd; border-radius: 8px;
+      padding: 5px 16px; font-size: 0.78rem; cursor: pointer;
+      transition: color 0.15s;
+    }
+    #btn-fp-clear:hover { color: #4527A0; border-color: #B39DDB; }
   </style>
 </head>
 
@@ -202,11 +227,16 @@
       <div class="word-chips"    id="word-chips"></div>
       <div id="tap-hint"></div>
     </div>
-  </div>
 
-  <div id="done-screen">
-    <h1>Ka pai! 🎉</h1>
-    <p>You have worked through all the phrases. Every time you model one of these on the board, students get to hear the language and see it connected to a symbol in a real moment.</p>
+    <div id="freeplay-card">
+      <div style="font-size:1.4rem; margin-bottom:6px;">🎉</div>
+      <div id="freeplay-title">Ka pai! You've worked through all the phrases.</div>
+      <p id="freeplay-desc">The whole board is yours to explore. Tap any symbol to hear it, then build your own phrases below.</p>
+      <div id="freeplay-phrase">
+        <span id="freeplay-empty">Tap a symbol to start...</span>
+      </div>
+      <button id="btn-fp-clear">Clear</button>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
@@ -253,9 +283,9 @@
         title: "Giving Instructions",
         desc:  "Short, clear phrases that guide students through transitions and movement. Pair them with a gesture or action for extra clarity.",
       },
-      { type:"phrase", display:"go in",    words:["go","in"],    labels:["go","in"]    },
-      { type:"phrase", display:"go out",   words:["go","out"],   labels:["go","out"]   },
-      { type:"phrase", display:"stand up", words:["stand","up"], labels:["stand","up"] },
+      { type:"phrase", display:"we go",    words:["we","go"],     labels:["we","go"]      },
+      { type:"phrase", display:"put away",  words:["put","away"],  labels:["put","away"]   },
+      { type:"phrase", display:"come here", words:["come","here"], labels:["come","here"]  },
       {
         type:  "category",
         icon:  "💬",
@@ -362,12 +392,20 @@
       });
     }
 
+    function enterFreeplay() {
+      clearTarget();
+      catCard.style.display     = 'none';
+      phraseCard.style.display  = 'none';
+      document.getElementById('freeplay-card').style.display = 'block';
+      progBar.style.width = '100%';
+      document.body.classList.add('freeplay');
+      fireConfetti(); fireConfetti();
+    }
+
     function loadItem(i) {
       const item = content[i];
       if (!item) {
-        clearTarget();
-        document.getElementById('done-screen').classList.add('show');
-        fireConfetti(); fireConfetti();
+        enterFreeplay();
         return;
       }
 
@@ -406,7 +444,34 @@
       loadItem(idx);
     });
 
+    // Freeplay phrase builder
+    const fpPhrase = document.getElementById('freeplay-phrase');
+    const fpEmpty  = document.getElementById('freeplay-empty');
+    document.getElementById('btn-fp-clear').addEventListener('click', () => {
+      fpPhrase.innerHTML = '';
+      fpPhrase.appendChild(fpEmpty);
+      fpEmpty.style.display = '';
+    });
+
+    function addFpChip(label) {
+      fpEmpty.style.display = 'none';
+      const chip = document.createElement('span');
+      chip.className = 'fp-chip';
+      chip.textContent = label;
+      fpPhrase.appendChild(chip);
+    }
+
     function onCellClick(btn, key) {
+      // In freeplay — speak and add to phrase builder
+      if (document.body.classList.contains('freeplay')) {
+        speak(key);
+        const label = speakAs[key] || key;
+        addFpChip(label);
+        btn.classList.add('flash');
+        setTimeout(() => btn.classList.remove('flash'), 300);
+        return;
+      }
+
       const item = content[idx];
       if (!item || item.type !== 'phrase') return;
 
