@@ -237,7 +237,7 @@
 
   <div id="done-screen">
     <h1>🎉 Section Complete!</h1>
-    <p>Great work making it through this set of tasks! Keep practising — the more you model on the core board, the more natural it becomes for you and your students.</p>
+    <p>Great work making it through this set of tasks! Keep practising, the more you model on the core board, the more natural it becomes for you and your students.</p>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
@@ -272,53 +272,53 @@
     const tasks = [
       {
         type:        "reflection",
-        title:       "Task 1 — Question Words",
+        title:       "Task 1: Question Words",
         instruction: "Six question words are highlighted on the board. Click one to select it, then write a question you could model using that word.",
         highlight:   ["who", "what", "when", "how", "why", "where"],
-        successMsg:  "✅ Question words are some of the most powerful tools on the board — they open up conversation and show students their voice matters.",
+        successMsg:  "✅ Question words are some of the most powerful tools on the board, they open up conversation and show students their voice matters.",
       },
       {
-        title:      "Task 2 — Transition to Lunch",
+        title:      "Task 2: Transition to Lunch",
         instruction:"You're moving students from circle time to the lunch table. Which word do you model to help them prepare?",
         highlight:  ["feel", "ready", "fast"],
         correct:    "ready",
-        successMsg: "✅ 'Ready' helps students anticipate what's coming and feel calm — a go-to word for any routine transition.",
+        successMsg: "✅ 'Ready' helps students anticipate what's coming and feel calm, a go-to word for any routine transition.",
         wrongMsgs: {
           "feel": "💭 A great word, but it doesn't signal a transition. What tells a student it's almost time to move?",
-          "fast": "⚠️ 'Fast' adds pressure and can make transitions stressful. Think about what helps students feel calm — try again!",
+          "fast": "⚠️ 'Fast' adds pressure and can make transitions stressful. Think about what helps students feel calm, try again!",
         },
       },
       {
-        title:      "Task 3 — Puzzle Time",
+        title:      "Task 3: Puzzle Time",
         instruction:"A student keeps guiding your hand to the puzzle pieces rather than attempting it themselves. Which word do you model to encourage them to have a go?",
         highlight:  ["you", "stop", "help"],
         correct:    "you",
-        successMsg: "✅ 'You' — as in 'your turn' or 'you do it' — hands ownership back to the student and builds real confidence.",
+        successMsg: "✅ 'You', as in 'your turn' or 'you do it', hands ownership back to the student and builds real confidence.",
         wrongMsgs: {
           "stop": "🚫 'Stop' shuts down engagement rather than building it. What would invite them to try?",
-          "help": "💛 Well-meaning, but offering help can take the activity away from them. We want them to feel capable — try again!",
+          "help": "💛 Well-meaning, but offering help can take the activity away from them. We want them to feel capable, try again!",
         },
       },
       {
-        title:      "Task 4 — Story Time",
-        instruction:"You're reading with a student and they start looking around and shuffling — clear signs they're losing interest. What do you model?",
+        title:      "Task 4: Story Time",
+        instruction:"You're reading with a student and they start looking around and shuffling, clear signs they're losing interest. What do you model?",
         highlight:  ["different", "hear", "sad"],
         correct:    "different",
-        successMsg: "✅ 'Different' shows you've read their cue and are offering a choice — keeping the interaction positive and student-led.",
+        successMsg: "✅ 'Different' shows you've read their cue and are offering a choice, keeping the interaction positive and student-led.",
         wrongMsgs: {
           "hear":   "👂 When a student is losing interest, we don't need them to listen to the whole book. Asking them to comply and sustain attention longer can lead to frustration and disengagement. Let reading be short and sweet, so the student can learn that books are fun.",
-          "sad":    "💙 We might feel sad that they don't want to continue — but we model from their perspective, not ours. They're not telling us they're sad. What might be more meaningful for them right now?",
+          "sad":    "💙 We might feel sad that they don't want to continue, but we model from their perspective, not ours. They're not telling us they're sad. What might be more meaningful for them right now?",
         },
       },
       {
-        title:      "Task 5 — Group Activity",
+        title:      "Task 5: Group Activity",
         instruction:"A student keeps getting up and isn't responding to 'sit down' or other cues. What do you model to follow their lead and move things forward?",
         highlight:  ["finish", "open", "wait"],
         correct:    "finish",
         successMsg: "✅ The student is telling you they're finished. Model 'finish' to put language to their intention, then move them to a short break.",
         wrongMsgs: {
           "open":  "📖 Before introducing something new, acknowledge what the student is already communicating. What are they telling you?",
-          "wait":  "⚠️ 'Wait' can dysregulate a student who's already signalling they're done. This is a moment to follow their lead — try again!",
+          "wait":  "⚠️ 'Wait' can dysregulate a student who's already signalling they're done. This is a moment to follow their lead, try again!",
         },
       },
     ];
@@ -444,7 +444,7 @@
         allCells.forEach(b => b.classList.remove('task-hl-selected'));
         btn.classList.add('task-hl-selected');
         selectedWord = key;
-        selectedWordDisplay.textContent = `✏️ "${key}" selected — now write a question you could model with this word`;
+        selectedWordDisplay.textContent = `✏️ "${key}" selected, now write a question you could model with this word`;
         selectedWordDisplay.classList.add('picked');
         updateSubmitBtn();
         return;
@@ -462,7 +462,7 @@
         btnNext.classList.add('show');
         fireConfetti();
       } else {
-        const msg = (t.wrongMsgs && t.wrongMsgs[key]) || 'Not quite — have another look!';
+        const msg = (t.wrongMsgs && t.wrongMsgs[key]) || 'Not quite, have another look!';
         elFeedback.style.color = '#c62828';
         elFeedback.textContent = msg;
         btn.classList.add('wrong-flash');
