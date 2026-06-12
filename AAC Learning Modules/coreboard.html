@@ -299,5 +299,29 @@
 
     showStep(0);
   </script>
+
+  <!-- Audio unlock: shown only when embedded in an iframe -->
+  <div id="audio-unlock" style="display:none; position:fixed; top:12px; right:12px; z-index:9999;">
+    <button id="audio-unlock-btn" style="
+      background:rgba(30,30,30,0.88); color:#fff;
+      border:none; border-radius:10px;
+      padding:9px 16px; font-size:0.82rem; font-weight:700;
+      cursor:pointer; box-shadow:0 4px 18px rgba(0,0,0,0.35);
+      display:flex; align-items:center; gap:7px; font-family:inherit;
+    ">🔊 Tap to enable sound</button>
+  </div>
+  <script>
+    (function() {
+      if (window.self !== window.top) {
+        document.getElementById('audio-unlock').style.display = 'block';
+        document.getElementById('audio-unlock-btn').addEventListener('click', function() {
+          var u = new SpeechSynthesisUtterance('\u00a0');
+          u.volume = 0;
+          window.speechSynthesis.speak(u);
+          document.getElementById('audio-unlock').style.display = 'none';
+        });
+      }
+    })();
+  </script>
 </body>
 </html>
