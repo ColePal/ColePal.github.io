@@ -195,13 +195,24 @@
     #freeplay-empty {
       font-size: 0.8rem; color: #bbb; font-style: italic;
     }
-    #btn-fp-clear {
-      background: transparent; color: #aaa;
-      border: 1px solid #ddd; border-radius: 8px;
-      padding: 5px 16px; font-size: 0.78rem; cursor: pointer;
-      transition: color 0.15s;
+    #fp-actions {
+      display: flex; gap: 10px; justify-content: center; margin-top: 4px;
     }
-    #btn-fp-clear:hover { color: #4527A0; border-color: #B39DDB; }
+    #btn-fp-speak {
+      background: #4527A0; color: #fff;
+      border: none; border-radius: 9px;
+      padding: 8px 20px; font-size: 0.85rem; font-weight: 700;
+      cursor: pointer; transition: background 0.15s;
+      display: flex; align-items: center; gap: 6px;
+    }
+    #btn-fp-speak:hover { background: #311B92; }
+    #btn-fp-clear {
+      background: #fff; color: #4527A0;
+      border: 2px solid #B39DDB; border-radius: 9px;
+      padding: 8px 20px; font-size: 0.85rem; font-weight: 700;
+      cursor: pointer; transition: all 0.15s;
+    }
+    #btn-fp-clear:hover { background: #EDE7F6; }
   </style>
 </head>
 
@@ -230,12 +241,15 @@
 
     <div id="freeplay-card">
       <div style="font-size:1.4rem; margin-bottom:6px;">🎉</div>
-      <div id="freeplay-title">Ka pai! You've worked through all the phrases.</div>
+      <div id="freeplay-title">Ka rawe! You've worked through all the phrases.</div>
       <p id="freeplay-desc">The whole board is yours to explore. Tap any symbol to hear it, then build your own phrases below.</p>
       <div id="freeplay-phrase">
         <span id="freeplay-empty">Tap a symbol to start...</span>
       </div>
-      <button id="btn-fp-clear">Clear</button>
+      <div id="fp-actions">
+        <button id="btn-fp-speak">🔊 Speak</button>
+        <button id="btn-fp-clear">Clear</button>
+      </div>
     </div>
   </div>
 
@@ -447,14 +461,37 @@
     // Freeplay phrase builder
     const fpPhrase = document.getElementById('freeplay-phrase');
     const fpEmpty  = document.getElementById('freeplay-empty');
+    let fpWords = [];
+
     document.getElementById('btn-fp-clear').addEventListener('click', () => {
+      fpWords = [];
       fpPhrase.innerHTML = '';
       fpPhrase.appendChild(fpEmpty);
       fpEmpty.style.display = '';
     });
 
+    document.getElementById('btn-fp-speak').addEventListener('click', () => {
+      if (!fpWords.length) return;
+      window.speechSynthesis.cancel();
+      fpWords.forEach((word, i) => {
+        const u = new SpeechSynthesisUtterance(word);
+        u.rate = 0.88;
+        u.onstart = () => {
+          const chips = fpPhrase.querySelectorAll('.fp-chip');
+          chips.forEach(c => c.style.background = '');
+          if (chips[i]) chips[i].style.background = '#B39DDB';
+        };
+        u.onend = () => {
+          const chips = fpPhrase.querySelectorAll('.fp-chip');
+          if (chips[i]) chips[i].style.background = '';
+        };
+        window.speechSynthesis.speak(u);
+      });
+    });
+
     function addFpChip(label) {
       fpEmpty.style.display = 'none';
+      fpWords.push(label);
       const chip = document.createElement('span');
       chip.className = 'fp-chip';
       chip.textContent = label;
