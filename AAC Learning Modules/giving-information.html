@@ -479,14 +479,15 @@
           tapHint.textContent = `Find and tap: "${item.labels[0]}"`;
           renderChips(item, 0);
           setTarget(item.words[0]);
-        }
-        scheduleCollapse(); else {
+          scheduleCollapse();
+        } else {
           document.body.classList.add('pass-independent');
           passLabel.textContent = '⭐ Now you try';
           passLabel.className = 'independent';
           tapHint.textContent = 'Can you find the words yourself?';
           renderChips(item, 0);
           // No setTarget — board is fully visible, no highlights
+          scheduleCollapse();
         }
       }
     }
