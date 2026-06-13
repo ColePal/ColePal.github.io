@@ -479,7 +479,6 @@
           tapHint.textContent = `Find and tap: "${item.labels[0]}"`;
           renderChips(item, 0);
           setTarget(item.words[0]);
-          scheduleCollapse();
         } else {
           document.body.classList.add('pass-independent');
           passLabel.textContent = '⭐ Now you try';
@@ -487,7 +486,6 @@
           tapHint.textContent = 'Can you find the words yourself?';
           renderChips(item, 0);
           // No setTarget — board is fully visible, no highlights
-          scheduleCollapse();
         }
       }
     }
@@ -554,7 +552,6 @@
       speak(key, item.ttsMap && item.ttsMap[key]);
 
       if (key === item.words[wordStep]) {
-        expandPanel();
         btn.classList.add('flash');
         setTimeout(() => btn.classList.remove('flash'), 300);
 
@@ -604,26 +601,10 @@
     // Panel collapse
     const panel       = document.getElementById('panel');
     const panelToggle = document.getElementById('panel-toggle');
-    let collapseTimer = null;
-
-    function scheduleCollapse(ms) {
-      clearTimeout(collapseTimer);
-      collapseTimer = setTimeout(() => {
-        panel.classList.add('collapsed');
-        panelToggle.textContent = '▲';
-      }, ms || 4000);
-    }
-
-    function expandPanel() {
-      clearTimeout(collapseTimer);
-      panel.classList.remove('collapsed');
-      panelToggle.textContent = '▼';
-    }
 
     panelToggle.addEventListener('click', () => {
-      const collapsed = panel.classList.toggle('collapsed');
+      const collapsed = taskPanel.classList.toggle('collapsed');
       panelToggle.textContent = collapsed ? '▲' : '▼';
-      if (!collapsed) clearTimeout(collapseTimer);
     });
 
     loadItem(0);
