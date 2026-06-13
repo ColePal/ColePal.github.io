@@ -113,6 +113,13 @@
       box-shadow: 0 14px 44px rgba(0,0,0,0.6);
       z-index: 300;
       text-align: center;
+      transition: left 0.3s, right 0.3s, transform 0.3s;
+    }
+
+    #task-panel.align-right {
+      left: auto;
+      right: 16px;
+      transform: none;
     }
 
     #panel-toggle {
@@ -264,6 +271,7 @@
     <h1>🎉 Ka pai!</h1>
     <p>Great work making it through this set of tasks! Keep practising, the more you model on the core board, the more natural it becomes for you and your students.</p>
     <a href="../index.html" style="display:inline-block;margin-top:16px;background:#1565C0;color:#fff;text-decoration:none;padding:12px 28px;border-radius:10px;font-weight:700;font-size:0.95rem;">Back to all modules →</a>
+    <button onclick="location.reload()" style="display:block;margin:10px auto 0;background:transparent;color:#bbb;border:1px solid #444;padding:8px 22px;border-radius:8px;font-size:0.82rem;cursor:pointer;">↩ Start again</button>
     <p style="margin-top:18px;font-size:0.82rem;color:#888;">Click <strong>Next</strong> in the top right corner when you're ready to continue.</p>
   </div>
 
@@ -317,7 +325,7 @@
       },
       {
         title:      "Task 3: Puzzle Time",
-        instruction:"A student keeps guiding your hand to the puzzle pieces rather than attempting it themselves. Which word do you model to encourage them to have a go?",
+        instruction:"A student keeps guiding your hand to the puzzle pieces. Which word do you model?",
         highlight:  ["you", "stop", "help"],
         correct:    "you",
         successMsg: "✅ 'You', as in 'your turn' or 'you do it', hands ownership back to the student and builds real confidence.",
@@ -423,6 +431,10 @@
       elInstr.textContent    = t.instruction;
       elFeedback.textContent = '';
       btnNext.classList.remove('show');
+
+      // Move panel right for Story Time (task index 3) to avoid blocking symbols
+      const taskPanel = document.getElementById('task-panel');
+      taskPanel.classList.toggle('align-right', i === 3);
 
       const isReflection = t.type === 'reflection';
       reflectionArea.style.display = isReflection ? 'block' : 'none';
