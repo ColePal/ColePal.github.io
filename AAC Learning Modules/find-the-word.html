@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Core Board – Find the Word</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #1a1a2e;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+      gap: 12px;
+    }
+
+    #board-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 960px;
+      user-select: none;
+    }
+
+    #board-img { display: block; width: 100%; height: auto; }
+
+    #overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+    }
+
+    /* Each cell manages its own visibility */
+    .cell {
+      position: absolute;
+      border: none;
+      border-radius: 4px;
+      padding: 0;
+      cursor: pointer;
+      pointer-events: auto;
+      z-index: 2;
+      transition: background 0.25s, box-shadow 0.2s;
+    }
+
+    /* Covered: opaque dark tile hiding the symbol */
+    .cell.covered {
+      background: rgba(18, 18, 36, 0.92);
+      cursor: default;
+    }
+
+    /* Revealed: fully transparent, image shows through */
+    .cell.revealed {
+      background: transparent;
+    }
+
+    /* Wrong guess: transparent but red border persists */
+    .cell.wrong {
+      background: rgba(200, 30, 30, 0.07);
+      box-shadow: inset 0 0 0 2.5px rgba(220, 50, 50, 0.85);
+    }
+
+    /* Found: green flash */
+    .cell.found {
+      background: rgba(46, 200, 90, 0.28);
+      box-shadow: inset 0 0 0 3px rgba(46, 200, 80, 0.95);
+      animation: pop 0.35s ease;
+    }
+
+    @keyframes pop {
+      0%   { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+
+    /* Panel */
+    #panel {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      border-radius: 14px;
+      padding: 14px 24px 16px;
+      max-width: 400px;
+      width: 93%;
+      box-shadow: 0 14px 44px rgba(0,0,0,0.6);
+      z-index: 300;
+      text-align: center;
+    }
+
+    #score-line {
+      font-size: 0.7rem;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 4px;
+    }
+
+    #target-label {
+      font-size: 0.72rem;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 3px;
+    }
+
+    #target-word {
+      font-size: 1.9rem;
+      font-weight: 800;
+      color: #1a1a2e;
+      margin-bottom: 10px;
+    }
+
+    #timer-wrap {
+      width: 100%;
+      height: 7px;
+      background: #eee;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      overflow: hidden;
+    }
+
+    #timer-bar {
+      height: 100%;
+      background: #1565C0;
+      border-radius: 4px;
+      width: 100%;
+    }
+
+    #timer-bar.urgent { background: #E53935; }
+
+    #status-msg {
+      font-size: 0.82rem;
+      color: #777;
+      min-height: 1.3em;
+    }
+
+    /* Result overlay */
+    #result-screen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(10,10,20,0.9);
+      z-index: 600;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      text-align: center;
+      padding: 32px;
+      gap: 12px;
+    }
+    #result-screen.show { display: flex; }
+    #result-screen h1 { font-size: 2rem; }
+    #result-screen p  { font-size: 0.96rem; color: #bbb; max-width: 400px; line-height: 1.65; }
+
+    #btn-next-word {
+      margin-top: 8px;
+      background: #1565C0; color: #fff;
+      border: none; border-radius: 10px;
+      padding: 12px 28px; font-size: 0.95rem; font-weight: 700;
+      cursor: pointer; transition: background 0.15s;
+    }
+    #btn-next-word:hover { background: #0D47A1; }
+
+    #btn-restart {
+      background: transparent; color: #888;
+      border: 1px solid #444; border-radius: 8px;
+      padding: 7px 20px; font-size: 0.8rem;
+      cursor: pointer; transition: color 0.15s;
+    }
+    #btn-restart:hover { color: #fff; border-color: #888; }
+
+    /* Intro screen */
+    #intro-screen {
+      position: fixed;
+      inset: 0;
+      background: #1a1a2e;
+      z-index: 700;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      text-align: center;
+      padding: 32px;
+      gap: 16px;
+    }
+    #intro-screen h1   { font-size: 1.7rem; }
+    #intro-screen p    { font-size: 0.9rem; color: #bbb; max-width: 420px; line-height: 1.7; }
+    #intro-screen ul   { text-align: left; font-size: 0.88rem; color: #bbb; line-height: 1.9; list-style: none; max-width: 340px; }
+    #intro-screen li::before { content: '• '; color: #42A5F5; }
+
+    #btn-start {
+      background: #1565C0; color: #fff;
+      border: none; border-radius: 10px;
+      padding: 12px 32px; font-size: 1rem; font-weight: 700;
+      cursor: pointer; transition: background 0.15s;
+    }
+    #btn-start:hover { background: #0D47A1; }
+  </style>
+</head>
+
+<body>
+  <div id="board-wrap">
+    <img id="board-img" src="coreboard.png" alt="AAC Core Board" draggable="false">
+    <div id="overlay"></div>
+  </div>
+
+  <div id="panel">
+    <div id="score-line">Score: <span id="score-val">0</span> &nbsp;|&nbsp; Round: <span id="round-val">0</span></div>
+    <div id="target-label">Find this word</div>
+    <div id="target-word"></div>
+    <div id="timer-wrap"><div id="timer-bar"></div></div>
+    <div id="status-msg">Get ready...</div>
+  </div>
+
+  <div id="result-screen">
+    <h1 id="result-title"></h1>
+    <p  id="result-msg"></p>
+    <button id="btn-next-word">Next word →</button>
+    <button id="btn-restart">↩ Start over</button>
+  </div>
+
+  <div id="intro-screen">
+    <div style="font-size:2.8rem">🔍</div>
+    <h1>Find the Word</h1>
+    <p>Every symbol on the board is hidden. Find the word shown in the panel before time runs out!</p>
+    <ul>
+      <li>Other tiles gradually reveal themselves as a hint</li>
+      <li>Wrong taps show a red outline so you can track your guesses</li>
+      <li>You have 20 seconds per word</li>
+    </ul>
+    <button id="btn-start">Let's go →</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  <script>
+    const IW = 1248, IH = 909, MAIN_H = 795, COLS = 11, ROWS = 7;
+    const cellW = 100 / COLS;
+    const cellH = (MAIN_H / IH) * (100 / ROWS);
+
+    const grid = [
+      ["I, me, my","it","who","what","am, is, are, be","when","be careful","all","some","that","this"],
+      ["he, she","we, they, us","not, don't","come","do, does, did","again","now, it's time","how","why","finish, all done","problem"],
+      ["you, your","drink","eat, taste","feel","get, got","late, later","ready","all gone","bad","big","clean"],
+      ["give, gave","go","hear, listen","help","like","where","away","cold","different","dirty","fast"],
+      ["look, see","make, made","open, close","play","put","here","there","good","happy","hot","little"],
+      ["read","say, tell","sit","stand","stop","in","out","more","sad","same","sick, sore"],
+      ["take","turn","wait","want","work","up","down","on","off","silly","slow"],
+    ];
+
+    const bottomRow = [
+      { word:"yes",    x1:206,  x2:313  },
+      { word:"one",    x1:324,  x2:434  },
+      { word:"two",    x1:443,  x2:553  },
+      { word:"three",  x1:562,  x2:672  },
+      { word:"four",   x1:681,  x2:791  },
+      { word:"five",   x1:800,  x2:911  },
+      { word:"no",     x1:924,  x2:1030 },
+      { word:"toilet", x1:1063, x2:1169 },
+    ];
+
+    const wordList = [
+      "help","stop","play","go","feel","look","want","more",
+      "like","come","wait","ready","happy","sad","good","not",
+      "eat","drink","sit","stand","make","take","read",
+      "what","who","how","why","when","where",
+      "up","down","in","out","on","off",
+    ];
+
+    // Build overlay cells
+    const overlay  = document.getElementById('overlay');
+    const allCells = [];
+
+    function makeCell(displayWord, styleObj) {
+      const btn = document.createElement('button');
+      btn.className = 'cell covered';
+      const key = displayWord.split(',')[0].trim().toLowerCase();
+      btn.dataset.key     = key;
+      btn.dataset.display = displayWord;
+      Object.assign(btn.style, styleObj);
+      btn.setAttribute('aria-label', displayWord);
+      btn.addEventListener('click', () => onCellClick(btn, key));
+      allCells.push(btn);
+      overlay.appendChild(btn);
+    }
+
+    grid.forEach((row, r) => row.forEach((word, c) => {
+      makeCell(word, {
+        left:   `${(c * cellW).toFixed(3)}%`,
+        top:    `${(r * cellH).toFixed(3)}%`,
+        width:  `${cellW.toFixed(3)}%`,
+        height: `${cellH.toFixed(3)}%`,
+      });
+    }));
+
+    const btmTop = `${(MAIN_H / IH * 100).toFixed(3)}%`;
+    const btmH   = `${((IH - MAIN_H) / IH * 100).toFixed(3)}%`;
+    bottomRow.forEach(({ word, x1, x2 }) => {
+      makeCell(word, {
+        left:   `${(x1 / IW * 100).toFixed(3)}%`,
+        top:    btmTop,
+        width:  `${((x2 - x1) / IW * 100).toFixed(3)}%`,
+        height: btmH,
+      });
+    });
+
+    // TTS
+    function speak(text) {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate = 1.1;
+      window.speechSynthesis.speak(u);
+    }
+
+    // Game state
+    const ROUND_TIME = 20;
+    let targetKey    = null;
+    let targetCell   = null;
+    let revealTimer  = null;
+    let tickInterval = null;
+    let timeLeft     = ROUND_TIME;
+    let roundActive  = false;
+    let score        = 0;
+    let roundNum     = 0;
+    let shuffled     = [];
+    let wordIdx      = 0;
+
+    const elTarget     = document.getElementById('target-word');
+    const elTimerBar   = document.getElementById('timer-bar');
+    const elStatus     = document.getElementById('status-msg');
+    const elScore      = document.getElementById('score-val');
+    const elRound      = document.getElementById('round-val');
+    const resultScreen = document.getElementById('result-screen');
+    const resultTitle  = document.getElementById('result-title');
+    const resultMsg    = document.getElementById('result-msg');
+
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function resetBoard() {
+      allCells.forEach(b => { b.className = 'cell covered'; });
+    }
+
+    function stopTimers() {
+      clearInterval(tickInterval);
+      clearInterval(revealTimer);
+    }
+
+    function startRevealSchedule() {
+      revealTimer = setInterval(() => {
+        const covered = allCells.filter(b =>
+          b.classList.contains('covered') && b.dataset.key !== targetKey
+        );
+        if (!covered.length) return;
+        const cell = covered[Math.floor(Math.random() * covered.length)];
+        cell.classList.remove('covered');
+        cell.classList.add('revealed');
+      }, 700);
+    }
+
+    function startCountdown() {
+      timeLeft = ROUND_TIME;
+      elTimerBar.style.transition = 'none';
+      elTimerBar.style.width = '100%';
+      elTimerBar.style.background = '#1565C0';
+      elTimerBar.classList.remove('urgent');
+
+      tickInterval = setInterval(() => {
+        timeLeft = Math.max(0, timeLeft - 0.2);
+        const pct = (timeLeft / ROUND_TIME) * 100;
+        elTimerBar.style.transition = 'width 0.2s linear';
+        elTimerBar.style.width = pct + '%';
+        if (timeLeft <= 6) elTimerBar.classList.add('urgent');
+        if (timeLeft <= 0) {
+          stopTimers();
+          onTimeout();
+        }
+      }, 200);
+    }
+
+    function startRound() {
+      if (wordIdx >= shuffled.length) {
+        shuffled = shuffle(wordList);
+        wordIdx  = 0;
+      }
+
+      const word = shuffled[wordIdx++];
+      targetKey  = word;
+      targetCell = allCells.find(b => b.dataset.key === word) || null;
+      if (!targetCell) { startRound(); return; } // skip if not on board
+
+      roundNum++;
+      elRound.textContent = roundNum;
+
+      resetBoard();
+      resultScreen.classList.remove('show');
+      roundActive = true;
+
+      elTarget.textContent = word;
+      elStatus.textContent = 'Tap the symbol when you find it!';
+      speak(word);
+
+      startRevealSchedule();
+      startCountdown();
+    }
+
+    function onCellClick(btn, key) {
+      if (!roundActive) return;
+
+      speak(btn.dataset.display.split(',')[0].trim());
+
+      if (key === targetKey) {
+        roundActive = false;
+        stopTimers();
+        score++;
+        elScore.textContent = score;
+
+        btn.classList.remove('covered');
+        btn.classList.add('found');
+        elTimerBar.style.transition = 'none';
+        elTimerBar.style.background = '#43A047';
+        elStatus.textContent = '🎉 Found it!';
+
+        confetti({
+          particleCount: 100, spread: 65,
+          origin: { y: 0.5 },
+          colors: ['#1565C0','#42A5F5','#FDD835','#66BB6A','#EF5350'],
+        });
+
+        setTimeout(() => showResult(true), 1100);
+      } else {
+        btn.classList.remove('covered');
+        btn.classList.add('wrong');
+        elStatus.textContent = 'Not quite — keep looking!';
+      }
+    }
+
+    function onTimeout() {
+      roundActive = false;
+      if (targetCell) {
+        targetCell.classList.remove('covered');
+        targetCell.classList.add('found');
+      }
+      elStatus.textContent = "Time's up!";
+      setTimeout(() => showResult(false), 900);
+    }
+
+    function showResult(success) {
+      if (success) {
+        resultTitle.textContent = '✅ Nice one!';
+        resultMsg.textContent   = `You found "${targetKey}" with ${Math.ceil(timeLeft)}s to spare.`;
+      } else {
+        resultTitle.textContent = "⏱️ Time's up!";
+        resultMsg.textContent   = `The word was "${targetKey}" — it's highlighted on the board. Take note of where it lives before the next round.`;
+      }
+      resultScreen.classList.add('show');
+    }
+
+    document.getElementById('btn-next-word').addEventListener('click', startRound);
+
+    document.getElementById('btn-restart').addEventListener('click', () => {
+      score = roundNum = wordIdx = 0;
+      shuffled = shuffle(wordList);
+      elScore.textContent = 0;
+      stopTimers();
+      startRound();
+    });
+
+    document.getElementById('btn-start').addEventListener('click', () => {
+      document.getElementById('intro-screen').style.display = 'none';
+      shuffled = shuffle(wordList);
+      startRound();
+    });
+  </script>
+</body>
+</html>
