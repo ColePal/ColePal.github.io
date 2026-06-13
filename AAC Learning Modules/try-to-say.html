@@ -364,7 +364,7 @@
     const sentences = [
       {
         prompt: "Let's go to the table for lunch.",
-        hint: "Think about movement and destination.",
+        hint: "Where are you headed, and what will you be doing when you get there? Think about the group too.",
         accepted: [
           ["go"],
           ["go","sit"],
@@ -372,99 +372,143 @@
           ["we","go","sit"],
           ["go","there"],
           ["we","go","there"],
+          ["go","eat"],
+          ["we","go","eat"],
+          ["now","go"],
+          ["sit","eat"],
         ]
       },
       {
         prompt: "Would you like more to eat?",
-        hint: "Think about desire and the activity.",
+        hint: "You're making an offer. Who is the offer for, and what are you inviting them to do or have?",
         accepted: [
           ["more"],
+          ["eat"],
           ["eat","more"],
           ["want","more"],
           ["i","want","more"],
           ["you","want","more"],
+          ["you","eat","more"],
+          ["want","eat"],
+          ["you","want"],
         ]
       },
       {
         prompt: "Time to clean up!",
-        hint: "Think about finishing or tidying.",
+        hint: "This marks the end of an activity. What needs to happen to the space, and who needs to do it?",
         accepted: [
           ["clean"],
           ["finish"],
           ["put","away"],
           ["finish","clean"],
+          ["now","clean"],
+          ["we","clean"],
+          ["you","clean"],
+          ["put","away","clean"],
         ]
       },
       {
         prompt: "Let's go outside and play!",
-        hint: "Think about going somewhere and the activity.",
+        hint: "Think about the direction of movement and the activity waiting on the other side of the door.",
         accepted: [
+          ["play"],
           ["go","play"],
           ["play","out"],
+          ["we","play"],
           ["we","go","play"],
           ["i","want","play"],
           ["go","out"],
+          ["now","play"],
+          ["out","play"],
         ]
       },
       {
         prompt: "Good job — you did it!",
-        hint: "Think about positive feelings or praise.",
+        hint: "Think about how the student might be feeling right now, and who deserves the acknowledgement.",
         accepted: [
           ["good"],
           ["happy"],
           ["good","happy"],
           ["you","good"],
           ["you","happy"],
+          ["you","do"],
+          ["you","do","good"],
+          ["you"],
+          ["good","you"],
         ]
       },
       {
         prompt: "Can you come here and sit down?",
-        hint: "Think about movement and what you want them to do.",
+        hint: "Think about the physical movement you're asking for, the location, and the final position.",
         accepted: [
           ["come","sit"],
           ["come","here"],
           ["sit","here"],
           ["come","here","sit"],
+          ["you","come"],
+          ["you","sit"],
+          ["you","come","sit"],
+          ["sit","down"],
+          ["you","come","here"],
         ]
       },
       {
         prompt: "Let's sit and listen to a story.",
-        hint: "Think about the actions involved.",
+        hint: "Think about the posture the group should take, and what kind of activity is about to happen.",
         accepted: [
+          ["hear"],
           ["sit","hear"],
+          ["we","sit"],
+          ["we","hear"],
           ["we","sit","hear"],
           ["sit","read"],
-          ["we","sit"],
-          ["hear"],
+          ["we","read"],
+          ["now","sit","hear"],
+          ["hear","read"],
         ]
       },
       {
         prompt: "Time for a drink!",
-        hint: "Think about the activity or what you want.",
+        hint: "A basic need is being met. Think about what's on offer, who it's for, and any sense of readiness.",
         accepted: [
           ["drink"],
-          ["want","drink"],
-          ["i","want","drink"],
           ["now","drink"],
+          ["want","drink"],
+          ["you","drink"],
+          ["we","drink"],
+          ["i","want","drink"],
+          ["you","want","drink"],
+          ["more","drink"],
+          ["ready","drink"],
         ]
       },
       {
         prompt: "Can you wait here for a moment?",
-        hint: "Think about pausing.",
+        hint: "You need the student to pause their movement and stay in one spot. Think about both ideas.",
         accepted: [
           ["wait"],
           ["wait","here"],
           ["you","wait"],
+          ["you","wait","here"],
+          ["now","wait"],
+          ["stop"],
+          ["stop","here"],
+          ["stop","wait"],
         ]
       },
       {
         prompt: "Let's work on this together.",
-        hint: "Think about the activity and who is doing it.",
+        hint: "Think about who is involved in this shared task and the kind of action it calls for.",
         accepted: [
           ["work"],
           ["we","work"],
-          ["i","want","work"],
+          ["we","do"],
           ["do","work"],
+          ["you","work"],
+          ["now","work"],
+          ["i","want","work"],
+          ["we","do","work"],
+          ["work","do"],
         ]
       },
     ];
