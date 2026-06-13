@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Core Board – Zone Finder</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #1a1a2e;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 12px 160px;
+    }
+
+    #board-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 960px;
+      user-select: none;
+    }
+
+    #board-img { display: block; width: 100%; height: auto; }
+
+    #overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+    }
+
+    /* ── Zone cell colours ───────────────────────────────── */
+    .cell {
+      position: absolute;
+      border: none; border-radius: 4px; padding: 0;
+      cursor: pointer; pointer-events: auto;
+      z-index: 2; background: transparent;
+      transition: background 0.18s;
+    }
+
+    .zone-people     { background: rgba(33,  150, 243, 0.28); }
+    .zone-questions  { background: rgba(255, 152,   0, 0.28); }
+    .zone-actions    { background: rgba(76,  175,  80, 0.28); }
+    .zone-describing { background: rgba(156,  39, 176, 0.28); }
+    .zone-locations  { background: rgba(255,  87,  34, 0.28); }
+
+    .cell.flash-wrong {
+      background: rgba(220, 50, 50, 0.62) !important;
+      transition: none;
+    }
+    .cell.flash-correct {
+      background: rgba(46, 200, 90, 0.55) !important;
+      box-shadow: inset 0 0 0 2px rgba(46,200,80,0.9);
+      transition: none;
+    }
+
+    /* ── Zone labels (floating on board) ─────────────────── */
+    .zone-label {
+      position: absolute;
+      font-size: 0.6rem;
+      font-weight: 800;
+      padding: 3px 7px;
+      border-radius: 12px;
+      pointer-events: none;
+      z-index: 10;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 1px 5px rgba(0,0,0,0.35);
+    }
+
+    /* ── Panel ───────────────────────────────────────────── */
+    #panel {
+      position: fixed;
+      bottom: 16px; left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      border-radius: 14px;
+      padding: 14px 24px 16px;
+      max-width: 400px; width: 93%;
+      box-shadow: 0 14px 44px rgba(0,0,0,0.6);
+      z-index: 300;
+      text-align: center;
+    }
+
+    #score-line {
+      font-size: 0.7rem; color: #aaa;
+      text-transform: uppercase; letter-spacing: 0.07em;
+      margin-bottom: 4px;
+    }
+
+    #target-label {
+      font-size: 0.72rem; color: #999;
+      text-transform: uppercase; letter-spacing: 0.07em;
+      margin-bottom: 3px;
+    }
+
+    #target-word {
+      font-size: 2rem; font-weight: 800;
+      color: #1a1a2e; margin-bottom: 10px;
+    }
+
+    #timer-wrap {
+      width: 100%; height: 7px;
+      background: #eee; border-radius: 4px;
+      margin-bottom: 8px; overflow: hidden;
+    }
+
+    #timer-bar {
+      height: 100%; background: #1565C0;
+      border-radius: 4px; width: 100%;
+    }
+    #timer-bar.urgent { background: #E53935; }
+
+    #status-msg {
+      font-size: 0.82rem; color: #777;
+      min-height: 1.3em;
+    }
+
+    /* ── Result overlay ──────────────────────────────────── */
+    #result-screen {
+      display: none; position: fixed; inset: 0;
+      background: rgba(10,10,20,0.9); z-index: 600;
+      flex-direction: column; align-items: center; justify-content: center;
+      color: #fff; text-align: center; padding: 32px; gap: 12px;
+    }
+    #result-screen.show { display: flex; }
+    #result-screen h1 { font-size: 2rem; }
+    #result-screen p  { font-size: 0.96rem; color: #bbb; max-width: 400px; line-height: 1.65; }
+
+    #btn-next-word {
+      margin-top: 8px;
+      background: #1565C0; color: #fff;
+      border: none; border-radius: 10px;
+      padding: 12px 28px; font-size: 0.95rem; font-weight: 700;
+      cursor: pointer;
+    }
+    #btn-next-word:hover { background: #0D47A1; }
+
+    #btn-restart {
+      background: transparent; color: #888;
+      border: 1px solid #444; border-radius: 8px;
+      padding: 7px 20px; font-size: 0.8rem; cursor: pointer;
+    }
+    #btn-restart:hover { color: #fff; border-color: #888; }
+
+    /* ── Intro screen ────────────────────────────────────── */
+    #intro-screen {
+      position: fixed; inset: 0;
+      background: #1a1a2e; z-index: 700;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      color: #fff; text-align: center; padding: 32px; gap: 14px;
+    }
+    #intro-screen h1 { font-size: 1.7rem; }
+    #intro-screen p  { font-size: 0.88rem; color: #bbb; max-width: 420px; line-height: 1.7; }
+
+    .legend {
+      display: flex; flex-direction: column; gap: 6px;
+      text-align: left; font-size: 0.84rem;
+    }
+    .legend-item {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .legend-dot {
+      width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
+    }
+
+    #btn-start {
+      background: #1565C0; color: #fff;
+      border: none; border-radius: 10px;
+      padding: 12px 32px; font-size: 1rem; font-weight: 700; cursor: pointer;
+    }
+    #btn-start:hover { background: #0D47A1; }
+  </style>
+</head>
+
+<body>
+  <div id="board-wrap">
+    <img id="board-img" src="coreboard.png" alt="AAC Core Board" draggable="false">
+    <div id="overlay"></div>
+  </div>
+
+  <div id="panel">
+    <div id="score-line">Score: <span id="score-val">0</span> &nbsp;|&nbsp; Round: <span id="round-val">0</span></div>
+    <div id="target-label">Tap the zone for</div>
+    <div id="target-word"></div>
+    <div id="timer-wrap"><div id="timer-bar"></div></div>
+    <div id="status-msg">Get ready…</div>
+  </div>
+
+  <div id="result-screen">
+    <h1 id="result-title"></h1>
+    <p  id="result-msg"></p>
+    <button id="btn-next-word">Next word →</button>
+    <button id="btn-restart">↩ Start over</button>
+  </div>
+
+  <div id="intro-screen">
+    <div style="font-size:2.8rem">🎯</div>
+    <h1>Zone Finder</h1>
+    <p>The board is divided into coloured zones. A word appears in the panel — tap anywhere in the zone where that word lives!</p>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#2196F3"></div><span style="color:#bbb"><strong style="color:#fff">People</strong> — I, you, we, he…</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#FF9800"></div><span style="color:#bbb"><strong style="color:#fff">Question words</strong> — who, what, when, how, why, where</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#4CAF50"></div><span style="color:#bbb"><strong style="color:#fff">Action words</strong> — go, sit, stop, eat, play…</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#9C27B0"></div><span style="color:#bbb"><strong style="color:#fff">Describing words</strong> — good, happy, big, fast…</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#FF5722"></div><span style="color:#bbb"><strong style="color:#fff">Location words</strong> — here, there, in, out, up…</span></div>
+    </div>
+    <button id="btn-start">Let's go →</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  <script>
+    // ── Board geometry ─────────────────────────────────────────────────────
+    const IW = 1248, IH = 909, MAIN_H = 795, COLS = 11, ROWS = 7;
+    const cellW = 100 / COLS;
+    const cellH = (MAIN_H / IH) * (100 / ROWS);
+
+    const grid = [
+      ["I, me, my","it","who","what","am, is, are, be","when","be careful","all","some","that","this"],
+      ["he, she","we, they, us","not, don't","come","do, does, did","again","now, it's time","how","why","finish, all done","problem"],
+      ["you, your","drink","eat, taste","feel","get, got","late, later","ready","all gone","bad","big","clean"],
+      ["give, gave","go","hear, listen","help","like","where","away","cold","different","dirty","fast"],
+      ["look, see","make, made","open, close","play","put","here","there","good","happy","hot","little"],
+      ["read","say, tell","sit","stand","stop","in","out","more","sad","same","sick, sore"],
+      ["take","turn","wait","want","work","up","down","on","off","silly","slow"],
+    ];
+
+    const bottomRow = [
+      { word:"yes",    x1:206,  x2:313  },
+      { word:"one",    x1:324,  x2:434  },
+      { word:"two",    x1:443,  x2:553  },
+      { word:"three",  x1:562,  x2:672  },
+      { word:"four",   x1:681,  x2:791  },
+      { word:"five",   x1:800,  x2:911  },
+      { word:"no",     x1:924,  x2:1030 },
+      { word:"toilet", x1:1063, x2:1169 },
+    ];
+
+    // ── Zone definitions ───────────────────────────────────────────────────
+    // labelLeft/Top: manually chosen to sit visually inside each zone cluster
+    const zoneList = [
+      {
+        id: "people",
+        name: "People",
+        color: "rgba(33,150,243,0.28)",
+        solid: "#1565C0",
+        labelLeft: "9%", labelTop: "18%",
+        keys: new Set(["i","he","we","you","it"])
+      },
+      {
+        id: "questions",
+        name: "Question words",
+        color: "rgba(255,152,0,0.28)",
+        solid: "#E65100",
+        labelLeft: "38%", labelTop: "6%",
+        keys: new Set(["who","what","am","when","how","why","where"])
+      },
+      {
+        id: "actions",
+        name: "Action words",
+        color: "rgba(76,175,80,0.28)",
+        solid: "#2E7D32",
+        labelLeft: "20%", labelTop: "57%",
+        keys: new Set(["come","do","not","drink","eat","feel","get","give","go",
+                       "hear","help","like","look","make","open","play","put",
+                       "read","say","sit","stand","stop","take","turn","wait",
+                       "want","work","again","finish"])
+      },
+      {
+        id: "describing",
+        name: "Describing words",
+        color: "rgba(156,39,176,0.28)",
+        solid: "#6A1B9A",
+        labelLeft: "83%", labelTop: "37%",
+        keys: new Set(["bad","big","clean","cold","different","dirty","fast",
+                       "good","happy","hot","little","more","sad","same","sick",
+                       "silly","slow","all","some","that","this","now","ready",
+                       "all gone","be careful","problem","late"])
+      },
+      {
+        id: "locations",
+        name: "Location words",
+        color: "rgba(255,87,34,0.28)",
+        solid: "#BF360C",
+        labelLeft: "56%", labelTop: "72%",
+        keys: new Set(["away","here","there","in","out","up","down","on","off"])
+      }
+    ];
+
+    const wordToZone = {};
+    zoneList.forEach(z => z.keys.forEach(k => wordToZone[k] = z.id));
+
+    // ── Build cells ────────────────────────────────────────────────────────
+    const overlay      = document.getElementById('overlay');
+    const allCells     = [];
+    const keyToDisplay = {};
+    const speakAs      = { "i":"I.", "hear":"listen", "now":"now it's time", "look":"see" };
+
+    function makeCell(displayWord, styleObj) {
+      const btn    = document.createElement('button');
+      const key    = displayWord.split(',')[0].trim().toLowerCase();
+      const zoneId = wordToZone[key];
+
+      btn.dataset.key  = key;
+      btn.dataset.zone = zoneId || '';
+      keyToDisplay[key] = displayWord.split(',')[0].trim();
+
+      btn.className = 'cell' + (zoneId ? ' zone-' + zoneId : '');
+      if (!zoneId) btn.style.pointerEvents = 'none'; // bottom row / unzoned
+
+      Object.assign(btn.style, styleObj);
+      btn.setAttribute('aria-label', displayWord);
+      btn.addEventListener('click', () => onCellClick(key, zoneId));
+      allCells.push(btn);
+      overlay.appendChild(btn);
+    }
+
+    grid.forEach((row, r) => row.forEach((word, c) => {
+      makeCell(word, {
+        left:   `${(c * cellW).toFixed(3)}%`,
+        top:    `${(r * cellH).toFixed(3)}%`,
+        width:  `${cellW.toFixed(3)}%`,
+        height: `${cellH.toFixed(3)}%`,
+      });
+    }));
+
+    const btmTop = `${(MAIN_H / IH * 100).toFixed(3)}%`;
+    const btmH   = `${((IH - MAIN_H) / IH * 100).toFixed(3)}%`;
+    bottomRow.forEach(({ word, x1, x2 }) => {
+      makeCell(word, {
+        left:   `${(x1 / IW * 100).toFixed(3)}%`,
+        top:    btmTop,
+        width:  `${((x2 - x1) / IW * 100).toFixed(3)}%`,
+        height: btmH,
+      });
+    });
+
+    // ── Zone labels on board ───────────────────────────────────────────────
+    zoneList.forEach(zone => {
+      const lbl = document.createElement('div');
+      lbl.className   = 'zone-label';
+      lbl.textContent = zone.name;
+      lbl.style.left       = zone.labelLeft;
+      lbl.style.top        = zone.labelTop;
+      lbl.style.background = zone.color.replace('0.28', '0.9');
+      lbl.style.color      = zone.solid;
+      lbl.style.border     = `1.5px solid ${zone.solid}`;
+      overlay.appendChild(lbl);
+    });
+
+    // ── TTS ────────────────────────────────────────────────────────────────
+    function speak(text) {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate = 1.1;
+      window.speechSynthesis.speak(u);
+    }
+
+    // ── Word pool (curated from all zones) ────────────────────────────────
+    const wordPool = [
+      // people
+      "i","we","you","he",
+      // questions
+      "who","what","when","how","why","where",
+      // actions
+      "go","stop","sit","play","help","want","wait","eat","drink","come",
+      "work","make","give","feel","look","read","turn",
+      // describing
+      "good","happy","sad","big","fast","slow","more","ready","finish","bad","little","clean",
+      // locations
+      "here","there","in","out","up","down","on","off","away"
+    ];
+
+    // ── Game state ─────────────────────────────────────────────────────────
+    const ROUND_TIME = 30;
+    let targetKey    = null;
+    let targetZoneId = null;
+    let tickInterval = null;
+    let timeLeft     = ROUND_TIME;
+    let roundActive  = false;
+    let score        = 0;
+    let roundNum     = 0;
+    let shuffled     = [];
+    let wordIdx      = 0;
+
+    const elTarget     = document.getElementById('target-word');
+    const elTimerBar   = document.getElementById('timer-bar');
+    const elStatus     = document.getElementById('status-msg');
+    const elScore      = document.getElementById('score-val');
+    const elRound      = document.getElementById('round-val');
+    const resultScreen = document.getElementById('result-screen');
+    const resultTitle  = document.getElementById('result-title');
+    const resultMsg    = document.getElementById('result-msg');
+
+    function shuffleArr(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function clearFlashes() {
+      allCells.forEach(b => b.classList.remove('flash-wrong','flash-correct'));
+    }
+
+    function flashZone(zoneId, cls, duration) {
+      const cells = allCells.filter(b => b.dataset.zone === zoneId);
+      cells.forEach(b => b.classList.add(cls));
+      if (duration) setTimeout(() => cells.forEach(b => b.classList.remove(cls)), duration);
+    }
+
+    function stopTimer() { clearInterval(tickInterval); }
+
+    function startCountdown() {
+      timeLeft = ROUND_TIME;
+      elTimerBar.style.transition = 'none';
+      elTimerBar.style.width = '100%';
+      elTimerBar.style.background = '#1565C0';
+      elTimerBar.classList.remove('urgent');
+
+      tickInterval = setInterval(() => {
+        timeLeft = Math.max(0, timeLeft - 0.2);
+        const pct = (timeLeft / ROUND_TIME) * 100;
+        elTimerBar.style.transition = 'width 0.2s linear';
+        elTimerBar.style.width = pct + '%';
+        if (timeLeft <= 8) elTimerBar.classList.add('urgent');
+        if (timeLeft <= 0) { stopTimer(); onTimeout(); }
+      }, 200);
+    }
+
+    function startRound() {
+      if (wordIdx >= shuffled.length) {
+        shuffled = shuffleArr(wordPool);
+        wordIdx  = 0;
+      }
+      const word   = shuffled[wordIdx++];
+      const zoneId = wordToZone[word];
+      if (!zoneId) { startRound(); return; }
+
+      targetKey    = word;
+      targetZoneId = zoneId;
+      roundNum++;
+      elRound.textContent  = roundNum;
+      elTarget.textContent = keyToDisplay[word] || word;
+      elStatus.textContent = 'Tap the zone where this word lives!';
+
+      clearFlashes();
+      resultScreen.classList.remove('show');
+      roundActive = true;
+
+      speak(speakAs[word] || keyToDisplay[word] || word);
+      startCountdown();
+    }
+
+    function onCellClick(key, zoneId) {
+      if (!roundActive || !zoneId) return;
+      speak(speakAs[key] || keyToDisplay[key] || key);
+
+      if (zoneId === targetZoneId) {
+        roundActive = false;
+        stopTimer();
+        score++;
+        elScore.textContent = score;
+
+        flashZone(targetZoneId, 'flash-correct');
+        elTimerBar.style.transition = 'none';
+        elTimerBar.style.background = '#43A047';
+        elStatus.textContent = '🎉 Correct zone!';
+
+        confetti({
+          particleCount: 80, spread: 60, origin: { y: 0.6 },
+          colors: ['#1565C0','#42A5F5','#FDD835','#66BB6A'],
+        });
+
+        const zoneName = zoneList.find(z => z.id === zoneId).name;
+        resultTitle.textContent = '✅ Nice one!';
+        resultMsg.textContent   = `"${keyToDisplay[targetKey]}" is in the ${zoneName} zone.`;
+        setTimeout(() => resultScreen.classList.add('show'), 900);
+
+      } else {
+        const wrongName = zoneList.find(z => z.id === zoneId).name;
+        elStatus.textContent = `Not quite — that's "${wrongName}". Try again!`;
+        flashZone(zoneId, 'flash-wrong', 650);
+      }
+    }
+
+    function onTimeout() {
+      roundActive = false;
+      flashZone(targetZoneId, 'flash-correct');
+      const zoneName = zoneList.find(z => z.id === targetZoneId).name;
+      elStatus.textContent = `Time's up! "${keyToDisplay[targetKey]}" is in ${zoneName}.`;
+      setTimeout(() => {
+        resultTitle.textContent = "⏱️ Time's up!";
+        resultMsg.textContent   = `"${keyToDisplay[targetKey]}" belongs to the ${zoneName} zone — it's highlighted on the board.`;
+        resultScreen.classList.add('show');
+      }, 1300);
+    }
+
+    document.getElementById('btn-next-word').addEventListener('click', startRound);
+
+    document.getElementById('btn-restart').addEventListener('click', () => {
+      score = roundNum = wordIdx = 0;
+      shuffled = shuffleArr(wordPool);
+      elScore.textContent = 0;
+      stopTimer();
+      startRound();
+    });
+
+    document.getElementById('btn-start').addEventListener('click', () => {
+      document.getElementById('intro-screen').style.display = 'none';
+      shuffled = shuffleArr(wordPool);
+      startRound();
+    });
+  </script>
+</body>
+</html>
