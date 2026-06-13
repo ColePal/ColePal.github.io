@@ -122,6 +122,9 @@
       transform: none;
     }
 
+    #task-panel.compact #task-instr { font-size: 0.75rem; line-height: 1.35; margin-bottom: 5px; }
+    #task-panel.compact { padding: 8px 16px 10px; }
+
     #panel-toggle {
       position: absolute;
       top: 8px; right: 10px;
@@ -270,8 +273,7 @@
   <div id="done-screen">
     <h1>🎉 Ka pai!</h1>
     <p>Great work making it through this set of tasks! Keep practising, the more you model on the core board, the more natural it becomes for you and your students.</p>
-    <a href="../index.html" style="display:inline-block;margin-top:16px;background:#1565C0;color:#fff;text-decoration:none;padding:12px 28px;border-radius:10px;font-weight:700;font-size:0.95rem;">Back to all modules →</a>
-    <button onclick="location.reload()" style="display:block;margin:10px auto 0;background:transparent;color:#bbb;border:1px solid #444;padding:8px 22px;border-radius:8px;font-size:0.82rem;cursor:pointer;">↩ Start again</button>
+    <button onclick="location.reload()" style="display:block;margin:16px auto 0;background:transparent;color:#bbb;border:1px solid #444;padding:8px 22px;border-radius:8px;font-size:0.82rem;cursor:pointer;">↩ Start again</button>
     <p style="margin-top:18px;font-size:0.82rem;color:#888;">Click <strong>Next</strong> in the top right corner when you're ready to continue.</p>
   </div>
 
@@ -325,7 +327,7 @@
       },
       {
         title:      "Task 3: Puzzle Time",
-        instruction:"A student keeps guiding your hand to the puzzle pieces. Which word do you model?",
+        instruction:"A student guides your hand to puzzle pieces repeatedly. What can you model to encourage them to try?",
         highlight:  ["you", "stop", "help"],
         correct:    "you",
         successMsg: "✅ 'You', as in 'your turn' or 'you do it', hands ownership back to the student and builds real confidence.",
@@ -432,9 +434,9 @@
       elFeedback.textContent = '';
       btnNext.classList.remove('show');
 
-      // Move panel right for Story Time (task index 3) to avoid blocking symbols
-      const taskPanel = document.getElementById('task-panel');
-      taskPanel.classList.toggle('align-right', i === 3);
+      // Task 3: compact to avoid blocking "stop"; Task 5: shift right to avoid blocking "wait"
+      taskPanel.classList.toggle('compact', i === 2);
+      taskPanel.classList.toggle('align-right', i === 4);
 
       const isReflection = t.type === 'reflection';
       reflectionArea.style.display = isReflection ? 'block' : 'none';
