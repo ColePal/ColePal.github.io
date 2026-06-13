@@ -600,8 +600,6 @@
     }
 
     updateProgress();
-    loadItem(0);
-
     // Panel collapse
     const panel       = document.getElementById('panel');
     const panelToggle = document.getElementById('panel-toggle');
@@ -626,6 +624,8 @@
       panelToggle.textContent = collapsed ? '▲' : '▼';
       if (!collapsed) clearTimeout(collapseTimer);
     });
+
+    loadItem(0);
   </script>
 </body>
 </html>
