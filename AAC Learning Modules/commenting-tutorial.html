@@ -558,8 +558,6 @@
       document.getElementById('intro-screen').classList.add('hide');
     });
 
-    loadTask(0);
-
     // Panel collapse
     const taskPanel   = document.getElementById('task-panel');
     const panelToggle = document.getElementById('panel-toggle');
@@ -584,6 +582,8 @@
       panelToggle.textContent = collapsed ? '▲' : '▼';
       if (!collapsed) clearTimeout(collapseTimer);
     });
+
+    loadTask(0);
   </script>
 </body>
 </html>
