@@ -122,6 +122,11 @@
       transform: none;
     }
 
+    #task-panel.align-left {
+      left: 16px;
+      transform: none;
+    }
+
     #task-panel.compact #task-instr { font-size: 0.75rem; line-height: 1.35; margin-bottom: 5px; }
     #task-panel.compact { padding: 8px 16px 10px; }
 
@@ -434,8 +439,9 @@
       elFeedback.textContent = '';
       btnNext.classList.remove('show');
 
-      // Task 3: compact to avoid blocking "stop"; Task 5: shift right to avoid blocking "wait"
+      // Task 3: compact to avoid blocking "stop"; Task 4: shift left; Task 5: shift right to avoid blocking "wait"
       taskPanel.classList.toggle('compact', i === 2);
+      taskPanel.classList.toggle('align-left', i === 3);
       taskPanel.classList.toggle('align-right', i === 4);
 
       const isReflection = t.type === 'reflection';
