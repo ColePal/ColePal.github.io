@@ -317,29 +317,11 @@
     // Panel collapse
     const obPanel     = document.getElementById('ob-panel');
     const panelToggle = document.getElementById('panel-toggle');
-    let collapseTimer = null;
-
-    function scheduleCollapse(ms) {
-      clearTimeout(collapseTimer);
-      collapseTimer = setTimeout(() => {
-        obPanel.classList.add('collapsed');
-        panelToggle.textContent = '▲';
-      }, ms || 5000);
-    }
-
-    function expandPanel() {
-      clearTimeout(collapseTimer);
-      obPanel.classList.remove('collapsed');
-      panelToggle.textContent = '▼';
-    }
 
     panelToggle.addEventListener('click', () => {
-      const collapsed = obPanel.classList.toggle('collapsed');
+      const collapsed = taskPanel.classList.toggle('collapsed');
       panelToggle.textContent = collapsed ? '▲' : '▼';
-      if (!collapsed) clearTimeout(collapseTimer);
     });
-
-    scheduleCollapse();
 
     showStep(0);
   </script>
