@@ -614,7 +614,7 @@
         elFeedback.textContent = attempts === 1
           ? `Not quite! ${s.hint}`
           : `Still not matching — try the hint below.`;
-        btnShowMe.style.display = '';
+        btnShowMe.style.display = 'inline-block';
       }
     });
 
@@ -624,7 +624,7 @@
       elHintEx.innerHTML = '<br>' + s.accepted.slice(0, 3)
         .map(ans => '&nbsp;&nbsp;' + ans.map(k => `<strong>${keyToDisplay[k] || k}</strong>`).join(' + '))
         .join('<br>');
-      elHintBox.style.display = '';
+      elHintBox.style.display = 'block';
       btnShowMe.style.display = 'none';
     });
 
