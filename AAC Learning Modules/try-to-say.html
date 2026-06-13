@@ -122,8 +122,8 @@
     #hint-box {
       display: none;
       background: #FFF8E1; border: 1px solid #FFD54F;
-      border-radius: 8px; padding: 8px 10px; margin-bottom: 7px;
-      font-size: 0.78rem; color: #5d4037; line-height: 1.75;
+      border-radius: 8px; padding: 6px 10px; margin-bottom: 7px;
+      font-size: 0.78rem; color: #5d4037; line-height: 1.5;
     }
     #hint-box strong {
       display: block; margin-bottom: 2px; font-size: 0.68rem;
@@ -613,19 +613,25 @@
         const s = sentences[shuffledIdxs[currentIdx]];
         elFeedback.textContent = attempts === 1
           ? `Not quite! ${s.hint}`
-          : `Still not matching — try the hint below.`;
+          : `Still not matching — try a hint.`;
         btnShowMe.style.display = 'inline-block';
+        btnShowMe.textContent = '💡 Hint';
       }
     });
 
     btnShowMe.addEventListener('click', () => {
-      hintShown = true;
-      const s = sentences[shuffledIdxs[currentIdx]];
-      elHintEx.innerHTML = '<br>' + s.accepted.slice(0, 3)
-        .map(ans => '&nbsp;&nbsp;' + ans.map(k => `<strong>${keyToDisplay[k] || k}</strong>`).join(' + '))
-        .join('<br>');
-      elHintBox.style.display = 'block';
-      btnShowMe.style.display = 'none';
+      if (elHintBox.style.display === 'block') {
+        elHintBox.style.display = 'none';
+        btnShowMe.textContent = '💡 Hint';
+      } else {
+        hintShown = true;
+        const s = sentences[shuffledIdxs[currentIdx]];
+        elHintEx.textContent = ' ' + s.accepted.slice(0, 3)
+          .map(ans => ans.map(k => keyToDisplay[k] || k).join(' + '))
+          .join('  /  ');
+        elHintBox.style.display = 'block';
+        btnShowMe.textContent = '✕ Hide';
+      }
     });
 
     btnSkip.addEventListener('click', () => advanceRound());
