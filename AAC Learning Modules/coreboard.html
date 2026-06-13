@@ -314,8 +314,6 @@
       showStep(step);
     });
 
-    showStep(0);
-
     // Panel collapse
     const obPanel     = document.getElementById('ob-panel');
     const panelToggle = document.getElementById('panel-toggle');
@@ -342,6 +340,8 @@
     });
 
     scheduleCollapse();
+
+    showStep(0);
   </script>
 </body>
 </html>
