@@ -42,11 +42,11 @@
       transition: background 0.18s;
     }
 
-    .zone-people     { background: rgba(33,150,243,0.28);  box-shadow: inset 0 0 0 2.5px rgba(33,150,243,0.75); }
-    .zone-questions  { background: rgba(255,152,0,0.28);   box-shadow: inset 0 0 0 2.5px rgba(255,152,0,0.75); }
-    .zone-actions    { background: rgba(76,175,80,0.28);   box-shadow: inset 0 0 0 2.5px rgba(76,175,80,0.75); }
-    .zone-describing { background: rgba(156,39,176,0.28);  box-shadow: inset 0 0 0 2.5px rgba(156,39,176,0.75); }
-    .zone-locations  { background: rgba(255,87,34,0.28);   box-shadow: inset 0 0 0 2.5px rgba(255,87,34,0.75); }
+    .zone-people     { background: rgba(33,150,243,0.28); }
+    .zone-questions  { background: rgba(255,152,0,0.28); }
+    .zone-actions    { background: rgba(76,175,80,0.28); }
+    .zone-describing { background: rgba(156,39,176,0.28); }
+    .zone-locations  { background: rgba(255,87,34,0.28); }
 
     .cell.flash-wrong {
       background: rgba(220, 50, 50, 0.62) !important;
@@ -355,7 +355,53 @@
       overlay.appendChild(lbl);
     });
 
-    // ── TTS ────────────────────────────────────────────────────────────────
+    // ── SVG zone outlines ──────────────────────────────────────────────────
+    // Draw a border around each zone's outer perimeter only (not between cells)
+    (function buildZoneOutlines() {
+      const svgCellW = IW / COLS;
+      const svgCellH = MAIN_H / ROWS;
+
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', `0 0 ${IW} ${IH}`);
+      svg.setAttribute('preserveAspectRatio', 'none');
+      svg.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:3;';
+
+      zoneList.forEach(zone => {
+        for (let r = 0; r < ROWS; r++) {
+          for (let c = 0; c < COLS; c++) {
+            const key = grid[r][c].split(',')[0].trim().toLowerCase();
+            if (wordToZone[key] !== zone.id) continue;
+
+            const x1 = c * svgCellW, y1 = r * svgCellH;
+            const x2 = x1 + svgCellW, y2 = y1 + svgCellH;
+
+            const sides = [
+              { dr:-1, dc: 0, lx1:x1, ly1:y1, lx2:x2, ly2:y1 }, // top
+              { dr:+1, dc: 0, lx1:x1, ly1:y2, lx2:x2, ly2:y2 }, // bottom
+              { dr: 0, dc:-1, lx1:x1, ly1:y1, lx2:x1, ly2:y2 }, // left
+              { dr: 0, dc:+1, lx1:x2, ly1:y1, lx2:x2, ly2:y2 }, // right
+            ];
+
+            sides.forEach(({ dr, dc, lx1, ly1, lx2, ly2 }) => {
+              const nr = r + dr, nc = c + dc;
+              const nKey = (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS)
+                ? grid[nr][nc].split(',')[0].trim().toLowerCase() : null;
+              if (wordToZone[nKey] === zone.id) return; // shared internal edge — skip
+
+              const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+              line.setAttribute('x1', lx1); line.setAttribute('y1', ly1);
+              line.setAttribute('x2', lx2); line.setAttribute('y2', ly2);
+              line.setAttribute('stroke', zone.solid);
+              line.setAttribute('stroke-width', '6');
+              line.setAttribute('stroke-linecap', 'square');
+              svg.appendChild(line);
+            });
+          }
+        }
+      });
+
+      overlay.appendChild(svg);
+    })();
     function speak(text) {
       window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
