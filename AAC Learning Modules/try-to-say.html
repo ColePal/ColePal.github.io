@@ -118,18 +118,6 @@
     }
     #btn-clear-all:hover { color: #666; }
 
-    /* ── Hint box ──────────────────────────────────────────────── */
-    #hint-box {
-      display: none;
-      background: #FFF8E1; border: 1px solid #FFD54F;
-      border-radius: 8px; padding: 6px 10px; margin-bottom: 7px;
-      font-size: 0.78rem; color: #5d4037; line-height: 1.5;
-    }
-    #hint-box strong {
-      display: block; margin-bottom: 2px; font-size: 0.68rem;
-      text-transform: uppercase; letter-spacing: 0.05em; color: #8d6e63;
-    }
-
     /* ── Feedback line ─────────────────────────────────────────── */
     #feedback {
       font-size: 0.79rem; min-height: 1.2em;
@@ -147,15 +135,6 @@
     }
     #btn-check:not(:disabled):hover { background: #0D47A1; }
     #btn-check:disabled { background: #bbb; cursor: default; }
-
-    #btn-show-me {
-      display: none;
-      background: #F5F5F5; color: #555;
-      border: 1px solid #ddd; border-radius: 10px;
-      padding: 10px 11px; font-size: 0.79rem; font-weight: 600;
-      cursor: pointer;
-    }
-    #btn-show-me:hover { background: #EEE; }
 
     #btn-skip {
       background: transparent; color: #bbb;
@@ -242,11 +221,9 @@
     <div id="phrase-row">
       <span id="phrase-placeholder">Tap symbols above to build your response…</span>
     </div>
-    <div id="hint-box"><strong>Example answers</strong><span id="hint-examples"></span></div>
     <div id="feedback"></div>
     <div id="btn-row">
       <button id="btn-check" disabled>Check ✓</button>
-      <button id="btn-show-me">💡 Show me</button>
       <button id="btn-skip">Skip →</button>
     </div>
   </div>
@@ -519,20 +496,16 @@
     let tappedWords  = [];  // { key, display }
     let score        = 0;
     let attempts     = 0;
-    let hintShown    = false;
     let roundDone    = false;
 
     const elPrompt      = document.getElementById('prompt-text');
     const elPhraseRow   = document.getElementById('phrase-row');
     const elPlaceholder = document.getElementById('phrase-placeholder');
     const elFeedback    = document.getElementById('feedback');
-    const elHintBox     = document.getElementById('hint-box');
-    const elHintEx      = document.getElementById('hint-examples');
     const elRound       = document.getElementById('round-val');
     const elTotal       = document.getElementById('total-val');
     const elScore       = document.getElementById('score-val');
     const btnCheck      = document.getElementById('btn-check');
-    const btnShowMe     = document.getElementById('btn-show-me');
     const btnSkip       = document.getElementById('btn-skip');
     const resultScreen  = document.getElementById('result-screen');
     const resultMsg     = document.getElementById('result-msg');
@@ -596,10 +569,6 @@
     function resetFeedback() {
       elFeedback.textContent = '';
       elFeedback.className   = '';
-      if (!hintShown) {
-        elHintBox.style.display = 'none';
-        btnShowMe.style.display = 'none';
-      }
     }
 
     function loadSentence() {
@@ -610,13 +579,10 @@
       elScore.textContent   = score;
       tappedWords  = [];
       attempts     = 0;
-      hintShown    = false;
       roundDone    = false;
 
       elFeedback.textContent   = '';
       elFeedback.className     = '';
-      elHintBox.style.display  = 'none';
-      btnShowMe.style.display  = 'none';
       btnCheck.disabled        = true;
       resultScreen.classList.remove('show');
       renderChips();
@@ -657,24 +623,7 @@
         const s = sentences[shuffledIdxs[currentIdx]];
         elFeedback.textContent = attempts === 1
           ? `Not quite! ${s.hint}`
-          : `Still not matching — try a hint.`;
-        btnShowMe.style.display = 'inline-block';
-        btnShowMe.textContent = '💡 Hint';
-      }
-    });
-
-    btnShowMe.addEventListener('click', () => {
-      if (elHintBox.style.display === 'block') {
-        elHintBox.style.display = 'none';
-        btnShowMe.textContent = '💡 Hint';
-      } else {
-        hintShown = true;
-        const s = sentences[shuffledIdxs[currentIdx]];
-        elHintEx.textContent = ' ' + s.accepted.slice(0, 3)
-          .map(ans => ans.map(k => keyToDisplay[k] || k).join(' + '))
-          .join('  /  ');
-        elHintBox.style.display = 'block';
-        btnShowMe.textContent = '✕ Hide';
+          : `Still not matching — ${s.hint}`;
       }
     });
 
