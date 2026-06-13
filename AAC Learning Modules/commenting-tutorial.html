@@ -108,7 +108,7 @@
       background: #fff;
       border-radius: 14px;
       padding: 12px 20px 14px;
-      max-width: 520px;
+      max-width: 400px;
       width: 93%;
       box-shadow: 0 14px 44px rgba(0,0,0,0.6);
       z-index: 300;
@@ -221,7 +221,7 @@
       background: #fff;
       border-radius: 16px;
       padding: 24px 28px 26px;
-      max-width: 520px;
+      max-width: 400px;
       width: 93%;
       box-shadow: 0 14px 44px rgba(0,0,0,0.5);
       text-align: center;
@@ -308,6 +308,7 @@
   <div id="done-screen">
     <h1>🎉 Nice work!</h1>
     <p>Every time you model on the core board, students get another opportunity to hear a word, see it paired with a symbol, and build familiarity with language in a real, meaningful moment. That exposure adds up, and it matters.</p>
+    <a href="../index.html" style="display:inline-block;margin-top:16px;background:#00695C;color:#fff;text-decoration:none;padding:12px 28px;border-radius:10px;font-weight:700;font-size:0.95rem;">Back to all modules →</a>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
@@ -426,7 +427,7 @@
     function speak(word) {
       window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(word);
-      u.rate = 0.88;
+      u.rate = 1.1;
       window.speechSynthesis.speak(u);
     }
 
@@ -473,6 +474,7 @@
       allCells.forEach(b => {
         if (hlSet.has(b.dataset.key)) b.classList.add('task-hl');
       });
+      scheduleCollapse();
     }
 
     function updateSubmitBtn() {
@@ -496,6 +498,7 @@
     });
 
     function onCellClick(btn, key) {
+      expandPanel();
       if (answered) return;
       speak(key);
 
@@ -539,7 +542,8 @@
         return;
       }
       loadTask(taskIdx);
-    });
+    }
+    scheduleCollapse();
 
     function fireConfetti() {
       confetti({
@@ -556,38 +560,30 @@
 
     loadTask(0);
 
-    // Panel collapse toggle
+    // Panel collapse
     const taskPanel   = document.getElementById('task-panel');
     const panelToggle = document.getElementById('panel-toggle');
+    let collapseTimer = null;
+
+    function scheduleCollapse(ms) {
+      clearTimeout(collapseTimer);
+      collapseTimer = setTimeout(() => {
+        taskPanel.classList.add('collapsed');
+        panelToggle.textContent = '▲';
+      }, ms || 4000);
+    }
+
+    function expandPanel() {
+      clearTimeout(collapseTimer);
+      taskPanel.classList.remove('collapsed');
+      panelToggle.textContent = '▼';
+    }
+
     panelToggle.addEventListener('click', () => {
       const collapsed = taskPanel.classList.toggle('collapsed');
       panelToggle.textContent = collapsed ? '▲' : '▼';
-      panelToggle.title = collapsed ? 'Show instructions' : 'Hide panel';
+      if (!collapsed) clearTimeout(collapseTimer);
     });
-  </script>
-
-  <!-- Audio unlock: shown only when embedded in an iframe -->
-  <div id="audio-unlock" style="display:none; position:fixed; top:12px; right:12px; z-index:9999;">
-    <button id="audio-unlock-btn" style="
-      background:rgba(30,30,30,0.88); color:#fff;
-      border:none; border-radius:10px;
-      padding:9px 16px; font-size:0.82rem; font-weight:700;
-      cursor:pointer; box-shadow:0 4px 18px rgba(0,0,0,0.35);
-      display:flex; align-items:center; gap:7px; font-family:inherit;
-    ">🔊 Tap to enable sound</button>
-  </div>
-  <script>
-    (function() {
-      if (window.self !== window.top) {
-        document.getElementById('audio-unlock').style.display = 'block';
-        document.getElementById('audio-unlock-btn').addEventListener('click', function() {
-          var u = new SpeechSynthesisUtterance('\u00a0');
-          u.volume = 0;
-          window.speechSynthesis.speak(u);
-          document.getElementById('audio-unlock').style.display = 'none';
-        });
-      }
-    })();
   </script>
 </body>
 </html>
