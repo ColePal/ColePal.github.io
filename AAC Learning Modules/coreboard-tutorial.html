@@ -438,7 +438,6 @@
       allCells.forEach(b => {
         if (hlSet.has(b.dataset.key)) b.classList.add('task-hl');
       });
-      scheduleCollapse();
     }
 
     function updateSubmitBtn() {
@@ -462,7 +461,6 @@
     });
 
     function onCellClick(btn, key) {
-      expandPanel();
       if (answered) return;
       speak(key);
 
@@ -520,26 +518,10 @@
     // Panel collapse
     const taskPanel   = document.getElementById('task-panel');
     const panelToggle = document.getElementById('panel-toggle');
-    let collapseTimer = null;
-
-    function scheduleCollapse(ms) {
-      clearTimeout(collapseTimer);
-      collapseTimer = setTimeout(() => {
-        taskPanel.classList.add('collapsed');
-        panelToggle.textContent = '▲';
-      }, ms || 4000);
-    }
-
-    function expandPanel() {
-      clearTimeout(collapseTimer);
-      taskPanel.classList.remove('collapsed');
-      panelToggle.textContent = '▼';
-    }
 
     panelToggle.addEventListener('click', () => {
       const collapsed = taskPanel.classList.toggle('collapsed');
       panelToggle.textContent = collapsed ? '▲' : '▼';
-      if (!collapsed) clearTimeout(collapseTimer);
     });
 
     loadTask(0);
