@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Core Board – Try to Say</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0d2137;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 12px 230px;
+    }
+
+    #board-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 960px;
+      user-select: none;
+    }
+
+    #board-img { display: block; width: 100%; height: auto; }
+
+    #overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+    }
+
+    .cell {
+      position: absolute;
+      border: none; border-radius: 4px; padding: 0;
+      cursor: pointer; pointer-events: auto;
+      z-index: 2; background: transparent;
+    }
+
+    .cell.tapped-flash {
+      background: rgba(66, 165, 245, 0.38);
+      box-shadow: inset 0 0 0 2px rgba(66, 165, 245, 0.9);
+    }
+
+    /* ── Bottom-sheet panel ─────────────────────────────────────── */
+    #panel {
+      position: fixed;
+      bottom: 0; left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      border-radius: 16px 16px 0 0;
+      padding: 10px 18px 22px;
+      max-width: 640px; width: 100%;
+      box-shadow: 0 -8px 40px rgba(0,0,0,0.5);
+      z-index: 300;
+    }
+
+    #drag-handle {
+      width: 36px; height: 4px;
+      background: #ddd; border-radius: 2px;
+      margin: 0 auto 8px;
+    }
+
+    #round-line {
+      font-size: 0.65rem; color: #bbb;
+      text-align: right; margin-bottom: 5px;
+    }
+
+    #prompt-header {
+      display: flex; align-items: baseline; gap: 6px;
+      margin-bottom: 3px;
+    }
+
+    #prompt-label {
+      font-size: 0.68rem; color: #999;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      flex-shrink: 0;
+    }
+
+    #btn-speak-prompt {
+      background: none; border: none; cursor: pointer;
+      font-size: 0.8rem; color: #90CAF9; padding: 0;
+      line-height: 1;
+    }
+    #btn-speak-prompt:hover { color: #1565C0; }
+
+    #prompt-text {
+      font-size: 1.05rem; font-weight: 700;
+      color: #1a1a2e; margin-bottom: 9px;
+      line-height: 1.35;
+    }
+
+    /* ── Phrase builder chips ───────────────────────────────────── */
+    #phrase-row {
+      display: flex; align-items: center; gap: 6px;
+      flex-wrap: wrap; min-height: 32px; margin-bottom: 7px;
+    }
+
+    #phrase-placeholder { font-size: 0.78rem; color: #bbb; font-style: italic; }
+
+    .chip {
+      display: inline-flex; align-items: center; gap: 3px;
+      background: #E3F2FD; color: #1565C0;
+      border: 1.5px solid #90CAF9; border-radius: 20px;
+      padding: 3px 9px; font-size: 0.8rem; font-weight: 600;
+      cursor: pointer; user-select: none;
+    }
+    .chip:hover { background: #BBDEFB; }
+    .chip .del { font-size: 0.65rem; color: #90CAF9; }
+
+    #btn-clear-all {
+      font-size: 0.72rem; color: #bbb;
+      background: none; border: 1px solid #e0e0e0;
+      border-radius: 10px; padding: 2px 8px; cursor: pointer;
+    }
+    #btn-clear-all:hover { color: #666; }
+
+    /* ── Hint box ──────────────────────────────────────────────── */
+    #hint-box {
+      display: none;
+      background: #FFF8E1; border: 1px solid #FFD54F;
+      border-radius: 8px; padding: 8px 10px; margin-bottom: 7px;
+      font-size: 0.78rem; color: #5d4037; line-height: 1.75;
+    }
+    #hint-box strong {
+      display: block; margin-bottom: 2px; font-size: 0.68rem;
+      text-transform: uppercase; letter-spacing: 0.05em; color: #8d6e63;
+    }
+
+    /* ── Feedback line ─────────────────────────────────────────── */
+    #feedback {
+      font-size: 0.79rem; min-height: 1.2em;
+      margin-bottom: 7px; color: #e53935;
+    }
+
+    /* ── Buttons ───────────────────────────────────────────────── */
+    #btn-row { display: flex; gap: 8px; }
+
+    #btn-check {
+      flex: 1; background: #1565C0; color: #fff;
+      border: none; border-radius: 10px; padding: 10px;
+      font-size: 0.88rem; font-weight: 700; cursor: pointer;
+      transition: background 0.15s;
+    }
+    #btn-check:not(:disabled):hover { background: #0D47A1; }
+    #btn-check:disabled { background: #bbb; cursor: default; }
+
+    #btn-show-me {
+      display: none;
+      background: #F5F5F5; color: #555;
+      border: 1px solid #ddd; border-radius: 10px;
+      padding: 10px 11px; font-size: 0.79rem; font-weight: 600;
+      cursor: pointer;
+    }
+    #btn-show-me:hover { background: #EEE; }
+
+    #btn-skip {
+      background: transparent; color: #bbb;
+      border: 1px solid #e0e0e0; border-radius: 10px;
+      padding: 10px 14px; font-size: 0.79rem; cursor: pointer;
+    }
+    #btn-skip:hover { color: #555; border-color: #aaa; }
+
+    /* ── Correct result overlay ────────────────────────────────── */
+    #result-screen {
+      display: none; position: fixed; inset: 0;
+      background: rgba(8,15,28,0.9); z-index: 600;
+      flex-direction: column; align-items: center; justify-content: center;
+      color: #fff; text-align: center; padding: 32px; gap: 10px;
+    }
+    #result-screen.show { display: flex; }
+    #result-screen .big { font-size: 3rem; }
+    #result-screen h1 { font-size: 1.85rem; }
+    #result-screen p { font-size: 0.88rem; color: #bbb; max-width: 380px; line-height: 1.65; }
+    #result-match { font-size: 0.83rem; color: #90CAF9; }
+
+    #btn-next {
+      margin-top: 10px; background: #1565C0; color: #fff;
+      border: none; border-radius: 10px; padding: 12px 32px;
+      font-size: 0.9rem; font-weight: 700; cursor: pointer;
+    }
+    #btn-next:hover { background: #0D47A1; }
+
+    #btn-restart-final {
+      background: transparent; color: #777;
+      border: 1px solid #444; border-radius: 8px;
+      padding: 7px 18px; font-size: 0.78rem; cursor: pointer;
+    }
+    #btn-restart-final:hover { color: #fff; border-color: #888; }
+
+    /* ── All-done overlay ──────────────────────────────────────── */
+    #done-screen {
+      display: none; position: fixed; inset: 0;
+      background: rgba(8,15,28,0.93); z-index: 600;
+      flex-direction: column; align-items: center; justify-content: center;
+      color: #fff; text-align: center; padding: 32px; gap: 12px;
+    }
+    #done-screen.show { display: flex; }
+
+    /* ── Intro screen ──────────────────────────────────────────── */
+    #intro-screen {
+      position: fixed; inset: 0;
+      background: #0d2137; z-index: 700;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      color: #fff; text-align: center; padding: 32px; gap: 14px;
+    }
+    #intro-screen h1 { font-size: 1.7rem; }
+    #intro-screen p  { font-size: 0.88rem; color: #bbb; max-width: 400px; line-height: 1.7; }
+    #intro-screen ul {
+      text-align: left; font-size: 0.84rem; color: #bbb;
+      line-height: 1.95; list-style: none; max-width: 340px;
+    }
+    #intro-screen li::before { content: '• '; color: #42A5F5; }
+    #btn-start {
+      background: #1565C0; color: #fff;
+      border: none; border-radius: 10px;
+      padding: 12px 32px; font-size: 1rem; font-weight: 700; cursor: pointer;
+    }
+    #btn-start:hover { background: #0D47A1; }
+  </style>
+</head>
+
+<body>
+  <div id="board-wrap">
+    <img id="board-img" src="coreboard.png" alt="AAC Core Board" draggable="false">
+    <div id="overlay"></div>
+  </div>
+
+  <!-- Bottom panel -->
+  <div id="panel">
+    <div id="drag-handle"></div>
+    <div id="round-line">Sentence <span id="round-val">1</span> of <span id="total-val">10</span> &nbsp;|&nbsp; ✅ <span id="score-val">0</span> correct</div>
+    <div id="prompt-header">
+      <span id="prompt-label">Try to say</span>
+      <button id="btn-speak-prompt" title="Hear the sentence">🔊</button>
+    </div>
+    <div id="prompt-text"></div>
+    <div id="phrase-row">
+      <span id="phrase-placeholder">Tap symbols above to build your response…</span>
+    </div>
+    <div id="hint-box"><strong>Example answers</strong><span id="hint-examples"></span></div>
+    <div id="feedback"></div>
+    <div id="btn-row">
+      <button id="btn-check" disabled>Check ✓</button>
+      <button id="btn-show-me">💡 Show me</button>
+      <button id="btn-skip">Skip →</button>
+    </div>
+  </div>
+
+  <!-- Correct overlay -->
+  <div id="result-screen">
+    <div class="big">✅</div>
+    <h1>Nice modelling!</h1>
+    <p id="result-msg"></p>
+    <div id="result-match"></div>
+    <button id="btn-next">Next sentence →</button>
+    <button id="btn-restart-final">↩ Start over</button>
+  </div>
+
+  <!-- All done overlay -->
+  <div id="done-screen">
+    <div style="font-size:3rem">🎉</div>
+    <h1>All done!</h1>
+    <p style="color:#bbb;font-size:0.88rem;max-width:360px;line-height:1.65">
+      Great work practising on the core board. Keep modelling every chance you get!
+    </p>
+    <button id="btn-done-restart" style="margin-top:12px;background:#1565C0;color:#fff;border:none;border-radius:10px;padding:12px 28px;font-size:0.9rem;font-weight:700;cursor:pointer;">↩ Play again</button>
+  </div>
+
+  <!-- Intro -->
+  <div id="intro-screen">
+    <div style="font-size:3rem">🗣️</div>
+    <h1>Try to Say</h1>
+    <p>A sentence will appear in the panel. Model it on the core board using core words — just like you would with a student.</p>
+    <ul>
+      <li>Tap board symbols to build your response</li>
+      <li>There's no single right answer — telegraphic models are accepted</li>
+      <li>Tap a chip to remove it, or clear all to start fresh</li>
+    </ul>
+    <button id="btn-start">Let's go →</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  <script>
+    // ── Board geometry ─────────────────────────────────────────────────────────
+    const IW = 1248, IH = 909, MAIN_H = 795, COLS = 11, ROWS = 7;
+    const cellW = 100 / COLS;
+    const cellH = (MAIN_H / IH) * (100 / ROWS);
+
+    const grid = [
+      ["I, me, my","it","who","what","am, is, are, be","when","be careful","all","some","that","this"],
+      ["he, she","we, they, us","not, don't","come","do, does, did","again","now, it's time","how","why","finish, all done","problem"],
+      ["you, your","drink","eat, taste","feel","get, got","late, later","ready","all gone","bad","big","clean"],
+      ["give, gave","go","hear, listen","help","like","where","away","cold","different","dirty","fast"],
+      ["look, see","make, made","open, close","play","put","here","there","good","happy","hot","little"],
+      ["read","say, tell","sit","stand","stop","in","out","more","sad","same","sick, sore"],
+      ["take","turn","wait","want","work","up","down","on","off","silly","slow"],
+    ];
+
+    const bottomRow = [
+      { word:"yes",    x1:206,  x2:313  },
+      { word:"one",    x1:324,  x2:434  },
+      { word:"two",    x1:443,  x2:553  },
+      { word:"three",  x1:562,  x2:672  },
+      { word:"four",   x1:681,  x2:791  },
+      { word:"five",   x1:800,  x2:911  },
+      { word:"no",     x1:924,  x2:1030 },
+      { word:"toilet", x1:1063, x2:1169 },
+    ];
+
+    const overlay    = document.getElementById('overlay');
+    const allCells   = [];
+    const keyToDisplay = {};
+    const speakAs    = { "i": "I.", "hear": "listen", "now": "now it's time", "look": "see" };
+
+    function makeCell(displayWord, styleObj) {
+      const btn = document.createElement('button');
+      btn.className = 'cell';
+      const key = displayWord.split(',')[0].trim().toLowerCase();
+      btn.dataset.key     = key;
+      btn.dataset.display = displayWord;
+      keyToDisplay[key]   = displayWord.split(',')[0].trim();
+      Object.assign(btn.style, styleObj);
+      btn.setAttribute('aria-label', displayWord);
+      btn.addEventListener('click', () => onCellClick(btn, key));
+      allCells.push(btn);
+      overlay.appendChild(btn);
+    }
+
+    grid.forEach((row, r) => row.forEach((word, c) => {
+      makeCell(word, {
+        left:   `${(c * cellW).toFixed(3)}%`,
+        top:    `${(r * cellH).toFixed(3)}%`,
+        width:  `${cellW.toFixed(3)}%`,
+        height: `${cellH.toFixed(3)}%`,
+      });
+    }));
+
+    const btmTop = `${(MAIN_H / IH * 100).toFixed(3)}%`;
+    const btmH   = `${((IH - MAIN_H) / IH * 100).toFixed(3)}%`;
+    bottomRow.forEach(({ word, x1, x2 }) => {
+      makeCell(word, {
+        left:   `${(x1 / IW * 100).toFixed(3)}%`,
+        top:    btmTop,
+        width:  `${((x2 - x1) / IW * 100).toFixed(3)}%`,
+        height: btmH,
+      });
+    });
+
+    // ── TTS ───────────────────────────────────────────────────────────────────
+    function speak(text) {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate = 1.1;
+      window.speechSynthesis.speak(u);
+    }
+
+    // ── Sentence data ──────────────────────────────────────────────────────────
+    // accepted: arrays of board keys — any order is accepted (sorted comparison)
+    const sentences = [
+      {
+        prompt: "Let's go to the table for lunch.",
+        hint: "Think about movement and destination.",
+        accepted: [
+          ["go"],
+          ["go","sit"],
+          ["we","go"],
+          ["we","go","sit"],
+          ["go","there"],
+          ["we","go","there"],
+        ]
+      },
+      {
+        prompt: "Would you like more to eat?",
+        hint: "Think about desire and the activity.",
+        accepted: [
+          ["more"],
+          ["eat","more"],
+          ["want","more"],
+          ["i","want","more"],
+          ["you","want","more"],
+        ]
+      },
+      {
+        prompt: "Time to clean up!",
+        hint: "Think about finishing or tidying.",
+        accepted: [
+          ["clean"],
+          ["finish"],
+          ["put","away"],
+          ["finish","clean"],
+        ]
+      },
+      {
+        prompt: "Let's go outside and play!",
+        hint: "Think about going somewhere and the activity.",
+        accepted: [
+          ["go","play"],
+          ["play","out"],
+          ["we","go","play"],
+          ["i","want","play"],
+          ["go","out"],
+        ]
+      },
+      {
+        prompt: "Good job — you did it!",
+        hint: "Think about positive feelings or praise.",
+        accepted: [
+          ["good"],
+          ["happy"],
+          ["good","happy"],
+          ["you","good"],
+          ["you","happy"],
+        ]
+      },
+      {
+        prompt: "Can you come here and sit down?",
+        hint: "Think about movement and what you want them to do.",
+        accepted: [
+          ["come","sit"],
+          ["come","here"],
+          ["sit","here"],
+          ["come","here","sit"],
+        ]
+      },
+      {
+        prompt: "Let's sit and listen to a story.",
+        hint: "Think about the actions involved.",
+        accepted: [
+          ["sit","hear"],
+          ["we","sit","hear"],
+          ["sit","read"],
+          ["we","sit"],
+          ["hear"],
+        ]
+      },
+      {
+        prompt: "Time for a drink!",
+        hint: "Think about the activity or what you want.",
+        accepted: [
+          ["drink"],
+          ["want","drink"],
+          ["i","want","drink"],
+          ["now","drink"],
+        ]
+      },
+      {
+        prompt: "Can you wait here for a moment?",
+        hint: "Think about pausing.",
+        accepted: [
+          ["wait"],
+          ["wait","here"],
+          ["you","wait"],
+        ]
+      },
+      {
+        prompt: "Let's work on this together.",
+        hint: "Think about the activity and who is doing it.",
+        accepted: [
+          ["work"],
+          ["we","work"],
+          ["i","want","work"],
+          ["do","work"],
+        ]
+      },
+    ];
+
+    // ── Game state ─────────────────────────────────────────────────────────────
+    let currentIdx   = 0;
+    let shuffledIdxs = [];
+    let tappedWords  = [];  // { key, display }
+    let score        = 0;
+    let attempts     = 0;
+    let hintShown    = false;
+    let roundDone    = false;
+
+    const elPrompt      = document.getElementById('prompt-text');
+    const elPhraseRow   = document.getElementById('phrase-row');
+    const elPlaceholder = document.getElementById('phrase-placeholder');
+    const elFeedback    = document.getElementById('feedback');
+    const elHintBox     = document.getElementById('hint-box');
+    const elHintEx      = document.getElementById('hint-examples');
+    const elRound       = document.getElementById('round-val');
+    const elTotal       = document.getElementById('total-val');
+    const elScore       = document.getElementById('score-val');
+    const btnCheck      = document.getElementById('btn-check');
+    const btnShowMe     = document.getElementById('btn-show-me');
+    const btnSkip       = document.getElementById('btn-skip');
+    const resultScreen  = document.getElementById('result-screen');
+    const resultMsg     = document.getElementById('result-msg');
+    const resultMatch   = document.getElementById('result-match');
+    const doneScreen    = document.getElementById('done-screen');
+
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function arraysMatch(a, b) {
+      if (a.length !== b.length) return false;
+      const sa = [...a].sort(), sb = [...b].sort();
+      return sa.every((v, i) => v === sb[i]);
+    }
+
+    function checkAnswer(keys) {
+      const s = sentences[shuffledIdxs[currentIdx]];
+      return s.accepted.find(ans => arraysMatch(ans, keys)) || null;
+    }
+
+    function renderChips() {
+      Array.from(elPhraseRow.querySelectorAll('.chip, #btn-clear-all')).forEach(e => e.remove());
+
+      if (tappedWords.length === 0) {
+        elPlaceholder.style.display = '';
+        btnCheck.disabled = true;
+      } else {
+        elPlaceholder.style.display = 'none';
+        tappedWords.forEach((w, i) => {
+          const chip = document.createElement('span');
+          chip.className = 'chip';
+          chip.innerHTML = `${w.display} <span class="del">✕</span>`;
+          chip.addEventListener('click', () => {
+            if (roundDone) return;
+            tappedWords.splice(i, 1);
+            resetFeedback();
+            renderChips();
+          });
+          elPhraseRow.appendChild(chip);
+        });
+        const cb = document.createElement('button');
+        cb.id = 'btn-clear-all';
+        cb.textContent = '✕ Clear';
+        cb.addEventListener('click', () => {
+          if (roundDone) return;
+          tappedWords = [];
+          resetFeedback();
+          renderChips();
+        });
+        elPhraseRow.appendChild(cb);
+        btnCheck.disabled = roundDone;
+      }
+    }
+
+    function resetFeedback() {
+      elFeedback.textContent = '';
+      elFeedback.className   = '';
+      if (!hintShown) {
+        elHintBox.style.display = 'none';
+        btnShowMe.style.display = 'none';
+      }
+    }
+
+    function loadSentence() {
+      const s = sentences[shuffledIdxs[currentIdx]];
+      elPrompt.textContent  = s.prompt;
+      elRound.textContent   = currentIdx + 1;
+      elTotal.textContent   = sentences.length;
+      elScore.textContent   = score;
+      tappedWords  = [];
+      attempts     = 0;
+      hintShown    = false;
+      roundDone    = false;
+
+      elFeedback.textContent   = '';
+      elFeedback.className     = '';
+      elHintBox.style.display  = 'none';
+      btnShowMe.style.display  = 'none';
+      btnCheck.disabled        = true;
+      resultScreen.classList.remove('show');
+      renderChips();
+      speak(s.prompt);
+    }
+
+    function onCellClick(btn, key) {
+      if (roundDone) return;
+      btn.classList.add('tapped-flash');
+      setTimeout(() => btn.classList.remove('tapped-flash'), 320);
+      tappedWords.push({ key, display: keyToDisplay[key] || key });
+      speak(speakAs[key] || keyToDisplay[key] || key);
+      resetFeedback();
+      renderChips();
+    }
+
+    btnCheck.addEventListener('click', () => {
+      if (!tappedWords.length || roundDone) return;
+      const keys  = tappedWords.map(w => w.key);
+      const match = checkAnswer(keys);
+      attempts++;
+
+      if (match) {
+        roundDone = true;
+        btnCheck.disabled = true;
+        score++;
+        elScore.textContent = score;
+
+        confetti({
+          particleCount: 90, spread: 65, origin: { y: 0.7 },
+          colors: ['#1565C0','#42A5F5','#FDD835','#66BB6A'],
+        });
+
+        resultMsg.textContent   = `You modelled: ${match.map(k => keyToDisplay[k] || k).join(' + ')}`;
+        resultMatch.textContent = '✨ Great job practising on the core board!';
+        resultScreen.classList.add('show');
+      } else {
+        const s = sentences[shuffledIdxs[currentIdx]];
+        elFeedback.textContent = attempts === 1
+          ? `Not quite! ${s.hint}`
+          : `Still not matching — try the hint below.`;
+        btnShowMe.style.display = '';
+      }
+    });
+
+    btnShowMe.addEventListener('click', () => {
+      hintShown = true;
+      const s = sentences[shuffledIdxs[currentIdx]];
+      elHintEx.innerHTML = '<br>' + s.accepted.slice(0, 3)
+        .map(ans => '&nbsp;&nbsp;' + ans.map(k => `<strong>${keyToDisplay[k] || k}</strong>`).join(' + '))
+        .join('<br>');
+      elHintBox.style.display = '';
+      btnShowMe.style.display = 'none';
+    });
+
+    btnSkip.addEventListener('click', () => advanceRound());
+
+    document.getElementById('btn-next').addEventListener('click', () => {
+      resultScreen.classList.remove('show');
+      advanceRound();
+    });
+
+    function advanceRound() {
+      currentIdx++;
+      if (currentIdx >= sentences.length) { showDone(); return; }
+      loadSentence();
+    }
+
+    function showDone() {
+      doneScreen.classList.add('show');
+      confetti({ particleCount: 160, spread: 90, origin: { y: 0.5 } });
+    }
+
+    function restartGame() {
+      score = 0; currentIdx = 0;
+      shuffledIdxs = shuffle([...Array(sentences.length).keys()]);
+      resultScreen.classList.remove('show');
+      doneScreen.classList.remove('show');
+      loadSentence();
+    }
+
+    document.getElementById('btn-done-restart').addEventListener('click', restartGame);
+    document.getElementById('btn-restart-final').addEventListener('click', restartGame);
+
+    document.getElementById('btn-speak-prompt').addEventListener('click', () => {
+      const s = sentences[shuffledIdxs[currentIdx]];
+      if (s) speak(s.prompt);
+    });
+
+    document.getElementById('btn-start').addEventListener('click', () => {
+      document.getElementById('intro-screen').style.display = 'none';
+      shuffledIdxs = shuffle([...Array(sentences.length).keys()]);
+      loadSentence();
+    });
+  </script>
+</body>
+</html>
