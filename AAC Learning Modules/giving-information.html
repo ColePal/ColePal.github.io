@@ -98,7 +98,7 @@
       background: #fff;
       border-radius: 14px;
       padding: 12px 20px 14px;
-      max-width: 520px;
+      max-width: 400px;
       width: 93%;
       box-shadow: 0 14px 44px rgba(0,0,0,0.6);
       z-index: 300;
@@ -395,7 +395,7 @@
     function speak(key, override) {
       window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(override || speakAs[key] || key);
-      u.rate = 0.88;
+      u.rate = 1.1;
       window.speechSynthesis.speak(u);
     }
 
@@ -479,7 +479,8 @@
           tapHint.textContent = `Find and tap: "${item.labels[0]}"`;
           renderChips(item, 0);
           setTarget(item.words[0]);
-        } else {
+        }
+        scheduleCollapse(); else {
           document.body.classList.add('pass-independent');
           passLabel.textContent = '⭐ Now you try';
           passLabel.className = 'independent';
@@ -512,7 +513,7 @@
       window.speechSynthesis.cancel();
       fpWords.forEach((word, i) => {
         const u = new SpeechSynthesisUtterance(word);
-        u.rate = 0.88;
+        u.rate = 1.1;
         u.onstart = () => {
           const chips = fpPhrase.querySelectorAll('.fp-chip');
           chips.forEach(c => c.style.background = '');
@@ -552,6 +553,7 @@
       speak(key, item.ttsMap && item.ttsMap[key]);
 
       if (key === item.words[wordStep]) {
+        expandPanel();
         btn.classList.add('flash');
         setTimeout(() => btn.classList.remove('flash'), 300);
 
@@ -600,38 +602,30 @@
     updateProgress();
     loadItem(0);
 
-    // Panel collapse toggle
+    // Panel collapse
     const panel       = document.getElementById('panel');
     const panelToggle = document.getElementById('panel-toggle');
+    let collapseTimer = null;
+
+    function scheduleCollapse(ms) {
+      clearTimeout(collapseTimer);
+      collapseTimer = setTimeout(() => {
+        panel.classList.add('collapsed');
+        panelToggle.textContent = '▲';
+      }, ms || 4000);
+    }
+
+    function expandPanel() {
+      clearTimeout(collapseTimer);
+      panel.classList.remove('collapsed');
+      panelToggle.textContent = '▼';
+    }
+
     panelToggle.addEventListener('click', () => {
       const collapsed = panel.classList.toggle('collapsed');
       panelToggle.textContent = collapsed ? '▲' : '▼';
-      panelToggle.title = collapsed ? 'Show instructions' : 'Hide panel';
+      if (!collapsed) clearTimeout(collapseTimer);
     });
-  </script>
-
-  <!-- Audio unlock: shown only when embedded in an iframe -->
-  <div id="audio-unlock" style="display:none; position:fixed; top:12px; right:12px; z-index:9999;">
-    <button id="audio-unlock-btn" style="
-      background:rgba(30,30,30,0.88); color:#fff;
-      border:none; border-radius:10px;
-      padding:9px 16px; font-size:0.82rem; font-weight:700;
-      cursor:pointer; box-shadow:0 4px 18px rgba(0,0,0,0.35);
-      display:flex; align-items:center; gap:7px; font-family:inherit;
-    ">🔊 Tap to enable sound</button>
-  </div>
-  <script>
-    (function() {
-      if (window.self !== window.top) {
-        document.getElementById('audio-unlock').style.display = 'block';
-        document.getElementById('audio-unlock-btn').addEventListener('click', function() {
-          var u = new SpeechSynthesisUtterance('\u00a0');
-          u.volume = 0;
-          window.speechSynthesis.speak(u);
-          document.getElementById('audio-unlock').style.display = 'none';
-        });
-      }
-    })();
   </script>
 </body>
 </html>
