@@ -77,6 +77,21 @@
       50%      { box-shadow: 0 0 0 6px rgba(255,255,255,0.4),  0 0 28px rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); }
     }
 
+    /* Quiz mode */
+    body.quiz .cell {
+      pointer-events: auto;
+      z-index: 2;
+    }
+
+    body.quiz .cell.highlighted {
+      animation: glow 1.4s ease-in-out infinite;
+    }
+
+    body.quiz .cell.correct-flash {
+      background: rgba(76,175,80,0.55) !important;
+      box-shadow: 0 0 0 4px rgba(76,175,80,0.9), 0 0 20px rgba(76,175,80,0.6);
+    }
+
     /* Onboarding panel */
     #ob-panel {
       position: fixed;
@@ -112,6 +127,7 @@
     #ob-dots { display: flex; gap: 6px; justify-content: center; margin-bottom: 12px; }
     .dot { width: 8px; height: 8px; border-radius: 50%; background: #ddd; transition: background 0.2s; }
     .dot.active { background: #1565C0; }
+    .dot.done   { background: #43A047; }
 
     #ob-panel h2 { font-size: 1.05rem; color: #111; margin-bottom: 8px; }
     #ob-panel p  { font-size: 0.9rem;  color: #444; line-height: 1.55; margin-bottom: 16px; }
@@ -123,6 +139,15 @@
     }
     #btn-next:hover { background: #0D47A1; }
 
+    #quiz-feedback {
+      display: none;
+      margin-top: 10px;
+      font-size: 0.88rem;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-weight: 600;
+    }
+
     #speech-bar { font-size: 0.9rem; color: #aaa; min-height: 1.4em; text-align: center; }
   </style>
 </head>
@@ -133,17 +158,20 @@
     <div id="overlay"></div>
   </div>
 
-  <!-- Onboarding panel -->
+  <!-- Onboarding / Quiz panel -->
   <div id="ob-panel">
     <button id="panel-toggle" title="Hide panel">▼</button>
     <div id="panel-body">
-    <div id="ob-counter"></div>
-    <div id="ob-dots"></div>
-    <h2 id="ob-title"></h2>
-    <p  id="ob-desc"></p>
-    <button id="btn-next">Next →</button>
+      <div id="ob-counter"></div>
+      <div id="ob-dots"></div>
+      <h2 id="ob-title"></h2>
+      <p  id="ob-desc"></p>
+      <button id="btn-next">Next →</button>
+      <div id="quiz-feedback"></div>
     </div>
   </div>
+
+  <div id="speech-bar"></div>
 
   <script>
     // ── Image dimensions (px) ─────────────────────────────────────────────────
@@ -157,19 +185,19 @@
     // ── Vocabulary ─────────────────────────────────────────────────────────
     // TTS text uses ", " between alternatives for natural reading
     const grid = [
-      // Row 1
+      // Row 0
       ["I, me, my","it","who","what","am, is, are, be","when","be careful","all","some","that","this"],
-      // Row 2
+      // Row 1
       ["he, she","we, they, us","not, don't","come","do, does, did","again","now, it's time","how","why","finish, all done","problem"],
-      // Row 3
+      // Row 2
       ["you, your","drink","eat, taste","feel","get, got","late, later","ready","all gone","bad","big","clean"],
-      // Row 4
+      // Row 3
       ["give, gave","go","hear, listen","help","like","where","away","cold","different","dirty","fast"],
-      // Row 5
+      // Row 4
       ["look, see","make, made","open, close","play","put","here","there","good","happy","hot","little"],
-      // Row 6
+      // Row 5
       ["read","say, tell","sit","stand","stop","in","out","more","sad","same","sick, sore"],
-      // Row 7
+      // Row 6
       ["take","turn","wait","want","work","up","down","on","off","silly","slow"],
     ];
 
@@ -186,13 +214,12 @@
     ];
 
     // Colour categories for onboarding highlighting
-    // Map each cell [row][col] to a category string
     const catMap = {
-      yellow: [[0,0],[0,1],[1,0],[1,1],[2,0]],           // pronouns (yellow bg)
-      pink:   [[0,2],[0,3],[0,5],[1,7],[1,8],[3,5]],            // social/questions (pink bg)
-      orange: [[0,4],[1,3],[1,4],[2,1],[2,2],[2,3],[2,4],[3,0],[3,1],[3,2],[3,3],[3,4],[4,0],[4,1],[4,2],[4,3],[4,4],[5,0],[5,1],[5,2],[5,3],[5,4],[6,0],[6,1],[6,2],[6,3],[6,4]], // verbs (green bg)
-      purple: [[3,5],[3,6],[4,5],[4,6],[5,5],[5,6],[6,5],[6,6],[6,7],[6,8]],  // prepositions (purple bg)
-      blue:   [[1,9],[2,7],[2,8],[2,9],[2,10],[3,7],[3,8],[3,9],[3,10],[4,7],[4,8],[4,9],[4,10],[5,7],[5,8],[5,9],[5,10],[6,9],[6,10]], // descriptors (blue bg)
+      yellow: [[0,0],[0,1],[1,0],[1,1],[2,0]],
+      pink:   [[0,2],[0,3],[0,5],[1,7],[1,8],[3,5]],
+      orange: [[0,4],[1,3],[1,4],[2,1],[2,2],[2,3],[2,4],[3,0],[3,1],[3,2],[3,3],[3,4],[4,0],[4,1],[4,2],[4,3],[4,4],[5,0],[5,1],[5,2],[5,3],[5,4],[6,0],[6,1],[6,2],[6,3],[6,4]],
+      purple: [[3,5],[3,6],[4,5],[4,6],[5,5],[5,6],[6,5],[6,6],[6,7],[6,8]],
+      blue:   [[1,9],[2,7],[2,8],[2,9],[2,10],[3,7],[3,8],[3,9],[3,10],[4,7],[4,8],[4,9],[4,10],[5,7],[5,8],[5,9],[5,10],[6,9],[6,10]],
     };
 
     // ── Build overlay buttons ─────────────────────────────────────────────
@@ -205,24 +232,29 @@
       Object.assign(btn.style, style);
       btn.setAttribute('aria-label', word);
       const spokenWord = word.split(',')[0].trim();
-      btn.addEventListener('click', () => speak(spokenWord, btn));
+      btn.addEventListener('click', () => {
+        if (quizActive) { handleQuizClick(btn); return; }
+        speak(spokenWord, btn);
+      });
       return btn;
     }
 
     // Main 7×11 grid
     grid.forEach((row, r) => {
       row.forEach((word, c) => {
-        // Determine category for onboarding
         let cat = 'other';
         for (const [catName, cells] of Object.entries(catMap)) {
           if (cells.some(([cr,cc]) => cr === r && cc === c)) { cat = catName; break; }
         }
-        overlay.appendChild(makeBtn(word, {
+        const btn = makeBtn(word, {
           left:   `${(c * cellW).toFixed(3)}%`,
           top:    `${(r * cellH).toFixed(3)}%`,
           width:  `${cellW.toFixed(3)}%`,
           height: `${cellH.toFixed(3)}%`,
-        }, cat));
+        }, cat);
+        btn.dataset.row = r;
+        btn.dataset.col = c;
+        overlay.appendChild(btn);
       });
     });
 
@@ -250,7 +282,7 @@
       setTimeout(() => btn.classList.remove('flash'), 250);
     }
 
-    // ── Onboarding ────────────────────────────────────────────────────────
+    // ── Onboarding steps ──────────────────────────────────────────────────
     const steps = [
       { title: "Welcome to the Core Board",
         desc:  "This is the most commonly used tool at our school. It helps our students to understand, make themselves understood, and learn that symbols have meaning. We point to symbols as we speak. Each symbol represents a word. Let's take a quick tour of how the board is organised.",
@@ -270,19 +302,20 @@
       { title: "🔵 Blue, Describing Words",
         desc:  "Blue symbols are descriptors, words like 'good', 'bad', 'big', 'hot', 'sad', 'different'. These give the students important information like 'finished', let them make choices or request 'more', or help them understand and share their feelings.",
         hl: 'blue' },
-      { title: "You're ready! 🎉",
-        desc:  "Now, explore the coreboard yourself! Try 'more', 'finished', 'your turn', 'go in', or any words and phrases you use with students throughout the day.<br><br>👉 Click the symbols to hear them spoken out loud and have a play with how you might use the coreboard.",
+      { title: "Now Let's Find Some Words! 🔍",
+        desc:  "Time to put your knowledge to the test! You'll be given 7 words one at a time. For each word, use the colour zones you've just learnt as your clue — then find and tap the word on the board.",
         hl: null },
     ];
 
-    const dotsEl    = document.getElementById('ob-dots');
-    const titleEl   = document.getElementById('ob-title');
-    const descEl    = document.getElementById('ob-desc');
-    const counterEl = document.getElementById('ob-counter');
-    const nextBtn   = document.getElementById('btn-next');
-    const panel     = document.getElementById('ob-panel');
+    const dotsEl       = document.getElementById('ob-dots');
+    const titleEl      = document.getElementById('ob-title');
+    const descEl       = document.getElementById('ob-desc');
+    const counterEl    = document.getElementById('ob-counter');
+    const nextBtn      = document.getElementById('btn-next');
+    const panel        = document.getElementById('ob-panel');
+    const quizFeedback = document.getElementById('quiz-feedback');
 
-    steps.forEach((_, i) => {
+    steps.forEach(() => {
       const d = document.createElement('div');
       d.className = 'dot';
       dotsEl.appendChild(d);
@@ -295,7 +328,9 @@
       titleEl.textContent   = s.title;
       descEl.innerHTML      = s.desc;
       counterEl.textContent = `Step ${i + 1} of ${steps.length}`;
-      nextBtn.textContent   = i === steps.length - 1 ? 'Start Exploring →' : 'Next →';
+      nextBtn.textContent   = i === steps.length - 1 ? 'Start Activity →' : 'Next →';
+      nextBtn.style.display = '';
+      quizFeedback.style.display = 'none';
       document.querySelectorAll('.dot').forEach((d, idx) => d.classList.toggle('active', idx === i));
       document.querySelectorAll('.cell').forEach(btn =>
         btn.classList.toggle('highlighted', s.hl !== null && btn.dataset.cat === s.hl)
@@ -306,24 +341,134 @@
       step++;
       if (step >= steps.length) {
         document.body.classList.remove('onboarding');
-        panel.style.display = 'none';
         document.querySelectorAll('.cell').forEach(b => b.classList.remove('highlighted'));
-        if (speechBar) speechBar.textContent = 'Click any symbol to hear it spoken aloud.';
+        startQuiz();
         return;
       }
       showStep(step);
     });
 
-    // Panel collapse
+    // Panel collapse toggle
     const obPanel     = document.getElementById('ob-panel');
     const panelToggle = document.getElementById('panel-toggle');
 
     panelToggle.addEventListener('click', () => {
-      const collapsed = taskPanel.classList.toggle('collapsed');
+      const collapsed = obPanel.classList.toggle('collapsed');
       panelToggle.textContent = collapsed ? '▲' : '▼';
     });
 
     showStep(0);
+
+    // ── Quiz activity ─────────────────────────────────────────────────────
+    let quizActive = false;
+    let quizIndex  = 0;
+    let quizLocked = false; // prevent clicks during transition
+
+    // zoneCat maps to the catMap key used for highlighting
+    const quizWords = [
+      { word: 'sit',    row: 5, col: 2, zoneCat: 'orange', zoneEmoji: '🟢', zoneName: 'green',  zoneDesc: 'an action word (verb)' },
+      { word: 'good',   row: 4, col: 7, zoneCat: 'blue',   zoneEmoji: '🔵', zoneName: 'blue',   zoneDesc: 'a describing word' },
+      { word: 'you',    row: 2, col: 0, zoneCat: 'yellow', zoneEmoji: '🟡', zoneName: 'yellow', zoneDesc: 'a pronoun' },
+      { word: 'finish', row: 1, col: 9, zoneCat: 'blue',   zoneEmoji: '🔵', zoneName: 'blue',   zoneDesc: 'a describing word' },
+      { word: 'help',   row: 3, col: 3, zoneCat: 'orange', zoneEmoji: '🟢', zoneName: 'green',  zoneDesc: 'an action word (verb)' },
+      { word: 'out',    row: 5, col: 6, zoneCat: 'purple', zoneEmoji: '🟣', zoneName: 'purple', zoneDesc: 'a location word' },
+      { word: 'when',   row: 0, col: 5, zoneCat: 'pink',   zoneEmoji: '🩷', zoneName: 'pink',   zoneDesc: 'a question word' },
+    ];
+
+    function startQuiz() {
+      quizActive = true;
+      quizIndex  = 0;
+      quizLocked = false;
+      document.body.classList.add('quiz');
+
+      // Replace onboarding dots with quiz progress dots
+      dotsEl.innerHTML = '';
+      quizWords.forEach(() => {
+        const d = document.createElement('div');
+        d.className = 'dot';
+        dotsEl.appendChild(d);
+      });
+
+      showQuizStep();
+    }
+
+    function showQuizStep() {
+      quizLocked = false;
+      quizFeedback.style.display = 'none';
+      nextBtn.style.display = 'none';
+
+      const qw = quizWords[quizIndex];
+      counterEl.textContent = `Word ${quizIndex + 1} of ${quizWords.length}`;
+      titleEl.textContent   = `Find "${qw.word}" on the board`;
+      descEl.innerHTML      = `<strong>"${qw.word}"</strong> is ${qw.zoneDesc} — look in the ${qw.zoneEmoji}&nbsp;<strong>${qw.zoneName}</strong> zone and tap it!`;
+
+      document.querySelectorAll('.dot').forEach((d, idx) => {
+        d.classList.toggle('active', idx === quizIndex);
+        d.classList.toggle('done',   idx < quizIndex);
+      });
+
+      // Highlight the zone so the user knows where to look
+      document.querySelectorAll('.cell').forEach(btn =>
+        btn.classList.toggle('highlighted', btn.dataset.cat === qw.zoneCat)
+      );
+    }
+
+    function handleQuizClick(btn) {
+      if (quizLocked) return;
+      const qw = quizWords[quizIndex];
+
+      if (parseInt(btn.dataset.row) === qw.row && parseInt(btn.dataset.col) === qw.col) {
+        // ✅ Correct
+        quizLocked = true;
+        speak(qw.word, btn);
+        btn.classList.add('correct-flash');
+
+        document.querySelectorAll('.cell').forEach(b => b.classList.remove('highlighted'));
+
+        quizFeedback.style.cssText =
+          'display:block; background:#e8f5e9; color:#2e7d32; border:1px solid #a5d6a7;';
+        quizFeedback.textContent = `✅ Correct! "${qw.word}" lives in the ${qw.zoneName} zone.`;
+
+        quizIndex++;
+        setTimeout(() => {
+          btn.classList.remove('correct-flash');
+          if (quizIndex < quizWords.length) {
+            showQuizStep();
+          } else {
+            endQuiz();
+          }
+        }, 1800);
+
+      } else {
+        // ❌ Wrong
+        quizFeedback.style.cssText =
+          'display:block; background:#fff3e0; color:#e65100; border:1px solid #ffcc80;';
+        quizFeedback.textContent = `🤔 Not quite — try again! Look in the ${qw.zoneEmoji} ${qw.zoneName} zone.`;
+        btn.classList.add('flash');
+        setTimeout(() => btn.classList.remove('flash'), 300);
+      }
+    }
+
+    function endQuiz() {
+      quizActive = false;
+      document.body.classList.remove('quiz');
+      document.querySelectorAll('.cell').forEach(b => b.classList.remove('highlighted'));
+
+      // Show celebration in panel then hide it
+      counterEl.textContent = '';
+      dotsEl.innerHTML = '';
+      titleEl.textContent = '🎉 Well done!';
+      descEl.innerHTML = "You found all 7 words! You now know where each colour zone lives on the core board.<br><br>👉 Click any symbol to hear it spoken aloud — have a free explore!";
+      nextBtn.textContent   = 'Start Exploring →';
+      nextBtn.style.display = '';
+      quizFeedback.style.display = 'none';
+
+      nextBtn.addEventListener('click', function handler() {
+        panel.style.display = 'none';
+        if (speechBar) speechBar.textContent = 'Click any symbol to hear it spoken aloud.';
+        nextBtn.removeEventListener('click', handler);
+      }, { once: true });
+    }
   </script>
 </body>
 </html>
