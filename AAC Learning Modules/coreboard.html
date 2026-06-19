@@ -449,6 +449,8 @@
 
         document.querySelectorAll('.cell').forEach(b => b.classList.remove('highlighted'));
 
+        titleEl.textContent = '';
+        descEl.innerHTML = '';
         quizFeedback.style.cssText =
           'display:block; background:#e8f5e9; color:#2e7d32; border:1px solid #a5d6a7;';
         quizFeedback.innerHTML = `✅ Correct! <strong>"${qw.word}"</strong> lives in the ${qw.zoneName} zone. You can use it to say: <em>"${qw.example}"</em>`;
