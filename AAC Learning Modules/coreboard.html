@@ -296,6 +296,8 @@
     const speechBar = document.getElementById('speech-bar');
     function speak(word, btn) {
       window.speechSynthesis.cancel();
+      // Chrome silently pauses synthesis after ~15 s of inactivity; resume it first
+      window.speechSynthesis.resume();
       const utt = new SpeechSynthesisUtterance(word);
       utt.rate = 0.88;
       window.speechSynthesis.speak(utt);
