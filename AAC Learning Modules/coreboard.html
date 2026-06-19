@@ -388,13 +388,13 @@
 
     // zoneCat maps to the catMap key used for highlighting
     const quizWords = [
-      { word: 'sit',    row: 5, col: 2, zoneCat: 'orange', zoneEmoji: '🟢', zoneName: 'green',  zoneDesc: 'an action word (verb)' },
-      { word: 'good',   row: 4, col: 7, zoneCat: 'blue',   zoneEmoji: '🔵', zoneName: 'blue',   zoneDesc: 'a describing word' },
-      { word: 'you',    row: 2, col: 0, zoneCat: 'yellow', zoneEmoji: '🟡', zoneName: 'yellow', zoneDesc: 'a pronoun' },
-      { word: 'help',   row: 3, col: 3, zoneCat: 'orange', zoneEmoji: '🟢', zoneName: 'green',  zoneDesc: 'an action word (verb)' },
-      { word: 'out',    row: 5, col: 6, zoneCat: 'purple', zoneEmoji: '🟣', zoneName: 'purple', zoneDesc: 'a location word' },
-      { word: 'when',   row: 0, col: 5, zoneCat: 'pink',   zoneEmoji: '🩷', zoneName: 'pink',   zoneDesc: 'a question word' },
-      { word: 'finish', row: 1, col: 9, zoneCat: 'blue',   zoneEmoji: '🔵', zoneName: 'blue',   zoneDesc: 'a describing word' },
+      { word: 'sit',    row: 5, col: 2, zoneCat: 'orange', zoneEmoji: '🟢', zoneName: 'green',  zoneDesc: 'an action word (verb)', example: 'Time to sit down' },
+      { word: 'good',   row: 4, col: 7, zoneCat: 'blue',   zoneEmoji: '🔵', zoneName: 'blue',   zoneDesc: 'a describing word',     example: 'That\'s good work!' },
+      { word: 'you',    row: 2, col: 0, zoneCat: 'yellow', zoneEmoji: '🟡', zoneName: 'yellow', zoneDesc: 'a pronoun',             example: 'Your turn' },
+      { word: 'help',   row: 3, col: 3, zoneCat: 'orange', zoneEmoji: '🟢', zoneName: 'green',  zoneDesc: 'an action word (verb)', example: 'Do you need help?' },
+      { word: 'out',    row: 5, col: 6, zoneCat: 'purple', zoneEmoji: '🟣', zoneName: 'purple', zoneDesc: 'a location word',       example: 'Let\'s go out' },
+      { word: 'when',   row: 0, col: 5, zoneCat: 'pink',   zoneEmoji: '🩷', zoneName: 'pink',   zoneDesc: 'a question word',       example: 'When do we go?' },
+      { word: 'finish', row: 1, col: 9, zoneCat: 'blue',   zoneEmoji: '🔵', zoneName: 'blue',   zoneDesc: 'a describing word',     example: 'All finished!' },
     ];
 
     function startQuiz() {
@@ -449,7 +449,7 @@
 
         quizFeedback.style.cssText =
           'display:block; background:#e8f5e9; color:#2e7d32; border:1px solid #a5d6a7;';
-        quizFeedback.textContent = `✅ Correct! "${qw.word}" lives in the ${qw.zoneName} zone.`;
+        quizFeedback.innerHTML = `✅ Correct! <strong>"${qw.word}"</strong> lives in the ${qw.zoneName} zone. You can use it to say: <em>"${qw.example}"</em>`;
 
         quizIndex++;
         setTimeout(() => {
