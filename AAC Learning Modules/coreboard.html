@@ -77,6 +77,28 @@
       50%      { box-shadow: 0 0 0 6px rgba(255,255,255,0.4),  0 0 28px rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); }
     }
 
+    /* Green-tinted glow for the action-word (green) zone so it stays visually green */
+    @keyframes glow-green {
+      0%,100% { box-shadow: 0 0 0 3px rgba(56,142,60,0.95), 0 0 14px rgba(56,142,60,0.55); background: rgba(56,142,60,0.28); }
+      50%      { box-shadow: 0 0 0 6px rgba(56,142,60,0.45), 0 0 28px rgba(56,142,60,0.22); background: rgba(56,142,60,0.14); }
+    }
+
+    body.onboarding .cell.highlighted[data-cat="orange"],
+    body.quiz        .cell.highlighted[data-cat="orange"] {
+      animation: glow-green 1.4s ease-in-out infinite;
+    }
+
+    /* Free-play mode: kill every lingering animation/overlay so all cells are fully interactive */
+    body.free-play .cell {
+      pointer-events: auto !important;
+      animation: none !important;
+      box-shadow: none !important;
+      background: transparent !important;
+    }
+    body.free-play .cell:hover  { background: rgba(255,255,255,0.18) !important; }
+    body.free-play .cell:active { background: rgba(255,255,0,0.30)    !important; }
+    body.free-play .cell.flash  { background: rgba(255,220,0,0.45)    !important; }
+
     /* Quiz mode */
     body.quiz .cell {
       pointer-events: auto;
@@ -369,10 +391,10 @@
       { word: 'sit',    row: 5, col: 2, zoneCat: 'orange', zoneEmoji: '🟢', zoneName: 'green',  zoneDesc: 'an action word (verb)' },
       { word: 'good',   row: 4, col: 7, zoneCat: 'blue',   zoneEmoji: '🔵', zoneName: 'blue',   zoneDesc: 'a describing word' },
       { word: 'you',    row: 2, col: 0, zoneCat: 'yellow', zoneEmoji: '🟡', zoneName: 'yellow', zoneDesc: 'a pronoun' },
-      { word: 'finish', row: 1, col: 9, zoneCat: 'blue',   zoneEmoji: '🔵', zoneName: 'blue',   zoneDesc: 'a describing word' },
       { word: 'help',   row: 3, col: 3, zoneCat: 'orange', zoneEmoji: '🟢', zoneName: 'green',  zoneDesc: 'an action word (verb)' },
       { word: 'out',    row: 5, col: 6, zoneCat: 'purple', zoneEmoji: '🟣', zoneName: 'purple', zoneDesc: 'a location word' },
       { word: 'when',   row: 0, col: 5, zoneCat: 'pink',   zoneEmoji: '🩷', zoneName: 'pink',   zoneDesc: 'a question word' },
+      { word: 'finish', row: 1, col: 9, zoneCat: 'blue',   zoneEmoji: '🔵', zoneName: 'blue',   zoneDesc: 'a describing word' },
     ];
 
     function startQuiz() {
@@ -452,7 +474,10 @@
     function endQuiz() {
       quizActive = false;
       document.body.classList.remove('quiz');
-      document.querySelectorAll('.cell').forEach(b => b.classList.remove('highlighted'));
+      document.body.classList.add('free-play');
+      document.querySelectorAll('.cell').forEach(b => {
+        b.classList.remove('highlighted', 'correct-flash', 'flash');
+      });
 
       // Show celebration in panel then hide it
       counterEl.textContent = '';
