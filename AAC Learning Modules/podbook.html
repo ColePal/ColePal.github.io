@@ -358,7 +358,6 @@
           { page:'1a', r:0, c:0   },   // I, me, my, mine
           { page:'1a', r:0, c:2   },   // ready
           { page:'1a', r:0, c:3   },   // more
-          { page:'1a', r:0, c:4   },   // more to say → page 2
           { page:'1a', r:1, c:0   },   // you, your
           { page:'1a', r:1, c:1   },   // do, did, does
           { page:'1a', r:2, c:4   },   // please
@@ -379,7 +378,6 @@
         desc:  'A student seems distressed but isn\'t communicating why. What might you model to help them express what\'s wrong?',
         answers: [
           { page:'1a', r:0, c:0   },   // I, me, my, mine
-          { page:'1a', r:0, c:4   },   // more to say → page 2
           { page:'1a', r:1, c:0   },   // you — "are you okay?"
           { page:'1a', r:1, c:3   },   // finish — "are you finished?"
           { page:'1a', r:2, c:0   },   // uh oh, oh no
@@ -406,7 +404,6 @@
           { page:'1a', r:0, c:0   },   // I, me, my, mine
           { page:'1a', r:0, c:2   },   // ready
           { page:'1a', r:0, c:3   },   // more
-          { page:'1a', r:0, c:4   },   // more to say → page 2
           { page:'1a', r:1, c:0   },   // you — "you ready?"
           { page:'1a', r:1, c:3   },   // finish — finishing to transition
           { page:'1a', r:2, c:2   },   // stop, wait
@@ -425,7 +422,6 @@
           { page:'1a', r:0, c:0   },   // I, me, my, mine
           { page:'1a', r:0, c:1   },   // not, don't, can't
           { page:'1a', r:0, c:3   },   // more
-          { page:'1a', r:0, c:4   },   // more to say → page 2
           { page:'1a', r:1, c:0   },   // you
           { page:'1a', r:1, c:1   },   // do, did, does
           { page:'1a', r:1, c:4   },   // I think it's
@@ -449,7 +445,6 @@
           { page:'1a', r:0, c:1   },   // not, don't, can't — consent/refusal
           { page:'1a', r:0, c:2   },   // ready
           { page:'1a', r:0, c:3   },   // more
-          { page:'1a', r:0, c:4   },   // more to say → page 2
           { page:'1a', r:1, c:0   },   // you — "you ready?"
           { page:'1a', r:1, c:3   },   // finish — when it's done
           { page:'1a', r:2, c:2   },   // stop, wait — safety word
@@ -529,6 +524,19 @@
     function handleActivityTap(cell, btn) {
       const s   = scenarios[scenarioIndex];
       const key = `${currentPage}-${cell.r}-${String(cell.c)}`;
+
+      // Nav buttons (more to say, turn the page, etc.) show a grey nudge but don't count
+      if (cell.nav) {
+        apFeedback.style.cssText = 'display:block; background:#f5f5f5; color:#555; border:1px solid #ccc;';
+        apFeedback.textContent   = `➡️ Navigating to find more options — good thinking! Now tap something to say.`;
+        const badge = document.createElement('span');
+        badge.className   = 'found-badge';
+        badge.style.cssText = 'background:#e0e0e0; color:#555; border-color:#bbb;';
+        badge.textContent = `➡️ ${cell.word.split(',')[0].trim()}`;
+        apFound.appendChild(badge);
+        return;
+      }
+
       const isAnswer = s.answers.some(a =>
         a.page === currentPage && a.r === cell.r && String(a.c) === String(cell.c)
       );
