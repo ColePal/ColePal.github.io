@@ -82,12 +82,12 @@
   <script>
     // ── Grid layout (% of image size, consistent across all pages) ────────
     // 5 content columns + 1 nav column, 4 content rows + 1 blank bottom row
-    const CELL_W   = 16.5;   // content cell width %
-    const NAV_W    = 13.3;   // nav column width %
-    const CELL_H   = 20.5;   // row height %
-    const colLeft  = [0.6, 17.7, 34.8, 51.9, 69.0];  // left % per content col
-    const NAV_LEFT = 86.1;
-    const rowTop   = [0.9, 21.9, 42.9, 63.9];         // top % per row
+    const CELL_W   = 17.0;   // content cell width %
+    const NAV_W    = 15.0;   // nav column width %
+    const CELL_H   = 21.0;   // row height %
+    const colLeft  = [0, 17, 34, 51, 68];              // left % per content col
+    const NAV_LEFT = 85;
+    const rowTop   = [0.5, 21.5, 42.5, 63.5];         // top % per row
 
     // ── Page content ──────────────────────────────────────────────────────
     // word: spoken text (first comma-segment used for TTS)
@@ -202,7 +202,7 @@
         const spoken = cell.word.split(',')[0].trim();
         btn.addEventListener('click', () => {
           speak(spoken, btn);
-          if (cell.nav) setTimeout(() => goToPage(cell.nav), 400);
+          if (cell.nav) setTimeout(() => goToPage(cell.nav), 200);
         });
 
         overlay.appendChild(btn);
@@ -227,6 +227,18 @@
       btn.classList.add('flash');
       setTimeout(() => btn.classList.remove('flash'), 250);
     }
+    // ── Debug: press D to toggle button outlines ─────────────────────────
+    document.addEventListener('keydown', e => {
+      if (e.key === 'd' || e.key === 'D') {
+        document.body.classList.toggle('debug');
+      }
+    });
   </script>
+  <style>
+    body.debug .cell {
+      outline: 2px solid rgba(255,0,0,0.7);
+      background: rgba(255,0,0,0.08) !important;
+    }
+  </style>
 </body>
 </html>
