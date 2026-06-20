@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PodBook</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #1a1a2e;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+      gap: 12px;
+    }
+
+    h1 { color: #fff; font-size: 1.2rem; letter-spacing: 0.02em; }
+
+    #book-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 960px;
+      user-select: none;
+    }
+
+    .page { display: none; position: relative; }
+    .page.active { display: block; }
+
+    .page-img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 6px;
+    }
+
+    .page-overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+    }
+
+    .cell {
+      position: absolute;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background 0.08s ease;
+      padding: 0;
+    }
+    .cell:hover  { background: rgba(255,255,255,0.18); }
+    .cell:active { background: rgba(255,255,0,0.30); }
+    .cell.flash  { background: rgba(255,220,0,0.45); }
+
+    #speech-bar { font-size: 0.9rem; color: #aaa; min-height: 1.4em; text-align: center; }
+  </style>
+</head>
+<body>
+  <h1>PodBook</h1>
+
+  <div id="book-wrap">
+    <div class="page active" id="page-1a">
+      <img class="page-img" src="podbook/page-1a.png" alt="Page 1a" draggable="false">
+      <div class="page-overlay" id="overlay-1a"></div>
+    </div>
+    <div class="page" id="page-1b">
+      <img class="page-img" src="podbook/page-1b.png" alt="Page 1b" draggable="false">
+      <div class="page-overlay" id="overlay-1b"></div>
+    </div>
+    <div class="page" id="page-2">
+      <img class="page-img" src="podbook/page-2.png" alt="Page 2" draggable="false">
+      <div class="page-overlay" id="overlay-2"></div>
+    </div>
+  </div>
+
+  <div id="speech-bar"></div>
+
+  <script>
+    // ── Grid layout (% of image size, consistent across all pages) ────────
+    // 5 content columns + 1 nav column, 4 content rows + 1 blank bottom row
+    const CELL_W   = 16.5;   // content cell width %
+    const NAV_W    = 13.3;   // nav column width %
+    const CELL_H   = 20.5;   // row height %
+    const colLeft  = [0.6, 17.7, 34.8, 51.9, 69.0];  // left % per content col
+    const NAV_LEFT = 86.1;
+    const rowTop   = [0.9, 21.9, 42.9, 63.9];         // top % per row
+
+    // ── Page content ──────────────────────────────────────────────────────
+    // word: spoken text (first comma-segment used for TTS)
+    // r / c: row / column index; c:'nav' for the nav column
+    // nav: page id to navigate to on click (also speaks)
+    const PAGES = {
+      '1a': [
+        // Row 0
+        { word: 'I, me, my, mine',            r:0, c:0 },
+        { word: "not, don't, can't",           r:0, c:1 },
+        { word: 'ready',                       r:0, c:2 },
+        { word: 'more',                        r:0, c:3 },
+        { word: 'more to say',                 r:0, c:4, nav:'2' },
+        // Row 1
+        { word: 'you, your, yours',            r:1, c:0 },
+        { word: 'do, did, does',               r:1, c:1 },
+        { word: 'hurry up',                    r:1, c:2 },
+        { word: 'finish',                      r:1, c:3 },
+        { word: "I think it's",                r:1, c:4 },
+        // Row 2
+        { word: 'uh oh, oh no',                r:2, c:0 },
+        { word: 'want',                        r:2, c:1 },
+        { word: 'stop, wait',                  r:2, c:2 },
+        { word: "let's do something else",     r:2, c:3 },
+        { word: 'please',                      r:2, c:4 },
+        // Row 3
+        { word: "I don't know",                r:3, c:0 },
+        { word: 'see, look, watch',            r:3, c:1 },
+        { word: 'help',                        r:3, c:2 },
+        { word: 'excuse me',                   r:3, c:3 },
+        { word: 'thank you',                   r:3, c:4 },
+        // Nav column
+        { word: 'go back to page 1',           r:0, c:'nav', nav:'1a' },
+        { word: 'ooops',                       r:1, c:'nav' },
+        { word: 'go to categories',            r:2, c:'nav' },
+        { word: 'turn the page',               r:3, c:'nav', nav:'1b' },
+      ],
+      '1b': [
+        // Row 0
+        { word: "what's your name",            r:0, c:0 },
+        { word: "I'm sorry",                   r:0, c:1 },
+        { word: "don't touch",                 r:0, c:2 },
+        { word: "I'm busy",                    r:0, c:3 },
+        { word: 'I understand',                r:0, c:4 },
+        // Row 1
+        { word: "what's happening",            r:1, c:0 },
+        { word: 'just joking',                 r:1, c:1 },
+        { word: "that's mine",                 r:1, c:2 },
+        { word: 'go away',                     r:1, c:3 },
+        { word: "I don't understand",          r:1, c:4 },
+        // Row 2  (col 1 is a blank instruction note — not interactive)
+        { word: "what's next",                 r:2, c:0 },
+        { word: 'you have to share',           r:2, c:2 },
+        { word: 'leave me alone',              r:2, c:3 },
+        { word: 'I forgot',                    r:2, c:4 },
+        // Row 3  (col 1 is blank — not interactive)
+        { word: 'can I play',                  r:3, c:0 },
+        { word: 'I want to do what the others are doing', r:3, c:2 },
+        { word: 'goodbye',                     r:3, c:3 },
+        { word: 'I love you',                  r:3, c:4 },
+        // Nav column
+        { word: 'go back to page 1',           r:0, c:'nav', nav:'1a' },
+        { word: 'ooops',                       r:1, c:'nav' },
+        { word: 'go to categories',            r:2, c:'nav' },
+        { word: 'go back to page 1a',          r:3, c:'nav', nav:'1a' },
+      ],
+      '2': [
+        // Row 0
+        { word: "it's time to",                r:0, c:0 },
+        { word: "I'm asking a question",       r:0, c:1 },
+        { word: 'I have an idea',              r:0, c:2 },
+        { word: 'I want to do an activity',    r:0, c:3 },
+        { word: "something's wrong",           r:0, c:4 },
+        // Row 1
+        { word: 'pack up',                     r:1, c:0 },
+        { word: "I'm telling you something",   r:1, c:1 },
+        { word: "let's pretend",               r:1, c:2 },
+        { word: "let's go",                    r:1, c:3 },
+        { word: "I think it's",                r:1, c:4 },
+        // Row 2
+        { word: 'please get my communicator',  r:2, c:0 },
+        { word: "I'm telling a story",         r:2, c:1 },
+        { word: 'I want to show you something',r:2, c:2 },
+        { word: 'do something',                r:2, c:3 },
+        { word: 'I like this',                 r:2, c:4 },
+        // Row 3
+        { word: 'I need to go to the toilet',  r:3, c:0 },
+        { word: 'remember when',               r:3, c:1 },
+        { word: 'I have a secret',             r:3, c:2 },
+        { word: 'do a group activity',         r:3, c:3 },
+        { word: "I don't like this",           r:3, c:4 },
+        // Nav column (no 4th nav button on page 2)
+        { word: 'go back to page 1',           r:0, c:'nav', nav:'1a' },
+        { word: 'ooops',                       r:1, c:'nav' },
+        { word: 'go to categories',            r:2, c:'nav' },
+      ],
+    };
+
+    // ── Build overlay buttons ─────────────────────────────────────────────
+    Object.entries(PAGES).forEach(([pageId, cells]) => {
+      const overlay = document.getElementById('overlay-' + pageId);
+      cells.forEach(cell => {
+        const isNav = cell.c === 'nav';
+        const btn   = document.createElement('button');
+        btn.className = 'cell';
+        btn.setAttribute('aria-label', cell.word);
+        btn.style.left   = (isNav ? NAV_LEFT : colLeft[cell.c]) + '%';
+        btn.style.top    = rowTop[cell.r] + '%';
+        btn.style.width  = (isNav ? NAV_W   : CELL_W) + '%';
+        btn.style.height = CELL_H + '%';
+
+        const spoken = cell.word.split(',')[0].trim();
+        btn.addEventListener('click', () => {
+          speak(spoken, btn);
+          if (cell.nav) setTimeout(() => goToPage(cell.nav), 400);
+        });
+
+        overlay.appendChild(btn);
+      });
+    });
+
+    // ── Navigation ────────────────────────────────────────────────────────
+    function goToPage(id) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById('page-' + id).classList.add('active');
+    }
+
+    // ── Speech ────────────────────────────────────────────────────────────
+    const speechBar = document.getElementById('speech-bar');
+    function speak(word, btn) {
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.resume();
+      const utt = new SpeechSynthesisUtterance(word);
+      utt.rate = 0.88;
+      window.speechSynthesis.speak(utt);
+      if (speechBar) speechBar.textContent = `🔊  "${word}"`;
+      btn.classList.add('flash');
+      setTimeout(() => btn.classList.remove('flash'), 250);
+    }
+  </script>
+</body>
+</html>
