@@ -154,7 +154,7 @@
         { word: 'go back to page 1',           r:0, c:'nav', nav:'1a' },
         { word: 'ooops',                       r:1, c:'nav' },
         { word: 'go to categories',            r:2, c:'nav' },
-        { word: 'go back to page 1a',          r:3, c:'nav', nav:'1a' },
+        { word: 'go back to page 1a',          r:3, c:'nav', nav:'1a', spoken:'go back to page 1 A' },
       ],
       '2': [
         // Row 0
@@ -201,7 +201,7 @@
         btn.style.width  = (isNav ? NAV_W   : CELL_W) + '%';
         btn.style.height = CELL_H + '%';
 
-        const spoken = cell.word.split(',')[0].trim();
+        const spoken = cell.spoken || cell.word.split(',')[0].trim();
         btn.addEventListener('click', () => {
           if (!cell.silent) speak(spoken, btn);
           if (cell.nav) setTimeout(() => goToPage(cell.nav), 200);
