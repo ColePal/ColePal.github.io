@@ -54,7 +54,71 @@
     }
     .cell:hover  { background: rgba(255,255,255,0.18); }
     .cell:active { background: rgba(255,255,0,0.30); }
-    .cell.flash  { background: rgba(255,220,0,0.45); }
+    .cell.flash         { background: rgba(255,220,0,0.45); }
+    .cell.correct-flash { background: rgba(76,175,80,0.55) !important;
+                          box-shadow: 0 0 0 3px rgba(76,175,80,0.9); }
+
+    /* ── Activity panel ──────────────────────────────────────────────── */
+    #activity-panel {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      border-radius: 14px;
+      padding: 12px 20px 14px;
+      max-width: 500px;
+      width: 92%;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.55);
+      z-index: 300;
+      text-align: center;
+    }
+    #ap-toggle {
+      position: absolute; top: 8px; right: 10px;
+      background: none; border: none; font-size: 1rem;
+      cursor: pointer; color: #aaa; padding: 2px 4px;
+    }
+    #ap-toggle:hover { color: #555; }
+    #activity-panel.collapsed #ap-body { display: none; }
+    #activity-panel.collapsed { padding: 10px 20px; }
+
+    #ap-counter { font-size: 0.78rem; color: #999; margin-bottom: 6px; }
+    #ap-dots { display: flex; gap: 6px; justify-content: center; margin-bottom: 10px; }
+    .ap-dot { width: 8px; height: 8px; border-radius: 50%; background: #ddd; transition: background 0.2s; }
+    .ap-dot.active { background: #1565C0; }
+    .ap-dot.done   { background: #43A047; }
+
+    #activity-panel h2 { font-size: 1.05rem; color: #111; margin-bottom: 8px; }
+    #activity-panel p  { font-size: 0.88rem; color: #444; line-height: 1.5; margin-bottom: 12px; }
+
+    #ap-found {
+      display: flex; flex-wrap: wrap; gap: 6px;
+      justify-content: center; margin-bottom: 10px; min-height: 1.6em;
+    }
+    .found-badge {
+      background: #e8f5e9; color: #2e7d32;
+      border: 1px solid #a5d6a7; border-radius: 20px;
+      padding: 2px 10px; font-size: 0.8rem; font-weight: 600;
+    }
+
+    #ap-feedback {
+      display: none; margin-bottom: 10px;
+      font-size: 0.85rem; padding: 7px 12px;
+      border-radius: 8px; font-weight: 600;
+    }
+    #ap-next {
+      background: #1565C0; color: #fff; border: none;
+      padding: 10px 28px; border-radius: 8px;
+      font-size: 0.92rem; font-weight: 700; cursor: pointer;
+      display: none;
+    }
+    #ap-next:hover { background: #0D47A1; }
+    #ap-start {
+      background: #43A047; color: #fff; border: none;
+      padding: 10px 28px; border-radius: 8px;
+      font-size: 0.92rem; font-weight: 700; cursor: pointer;
+    }
+    #ap-start:hover { background: #2E7D32; }
 
     #speech-bar { font-size: 0.9rem; color: #aaa; min-height: 1.4em; text-align: center; }
   </style>
@@ -74,6 +138,21 @@
     <div class="page" id="page-2">
       <img class="page-img" src="podbook/page-2.png" alt="Page 2" draggable="false">
       <div class="page-overlay" id="overlay-2"></div>
+    </div>
+  </div>
+
+  <!-- Activity panel -->
+  <div id="activity-panel">
+    <button id="ap-toggle" title="Collapse">▼</button>
+    <div id="ap-body">
+      <div id="ap-counter"></div>
+      <div id="ap-dots"></div>
+      <h2 id="ap-title">Try to Say 🗣️</h2>
+      <p  id="ap-desc">You'll be given 4 real-life scenarios. Navigate the PODD book and tap a symbol that would be relevant to say in each situation. There may be more than one right answer!</p>
+      <div id="ap-found"></div>
+      <div id="ap-feedback"></div>
+      <button id="ap-start">Start Activity →</button>
+      <button id="ap-next">Next Scenario →</button>
     </div>
   </div>
 
@@ -205,6 +284,7 @@
         btn.addEventListener('click', () => {
           if (!cell.silent) speak(spoken, btn);
           if (cell.nav) setTimeout(() => goToPage(cell.nav), 200);
+          if (activityActive && !cell.silent) handleActivityTap(cell, btn);
         });
 
         overlay.appendChild(btn);
@@ -212,9 +292,11 @@
     });
 
     // ── Navigation ────────────────────────────────────────────────────────
+    let currentPage = '1a';
     function goToPage(id) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById('page-' + id).classList.add('active');
+      currentPage = id;
     }
 
     // ── Speech ────────────────────────────────────────────────────────────
@@ -229,11 +311,156 @@
       btn.classList.add('flash');
       setTimeout(() => btn.classList.remove('flash'), 250);
     }
+
+    // ── Scenarios ─────────────────────────────────────────────────────────
+    const scenarios = [
+      {
+        title: 'Getting ready to read 📖',
+        desc:  'You\'re about to read a story with a student. What might you model on the PODD book to help get them ready?',
+        answers: [
+          { page:'1a', r:0, c:2   },   // ready
+          { page:'1a', r:1, c:0   },   // you
+          { page:'1a', r:3, c:1   },   // see, look, watch
+          { page:'1a', r:3, c:'nav' }, // turn the page
+          { page:'1b', r:2, c:0   },   // what's next
+          { page:'2',  r:2, c:1   },   // I'm telling a story
+          { page:'2',  r:2, c:2   },   // I want to show you something
+        ]
+      },
+      {
+        title: 'A student seems upset 😟',
+        desc:  'A student seems distressed but isn\'t communicating why. What might you model to help them express what\'s wrong?',
+        answers: [
+          { page:'1a', r:3, c:2   },   // help
+          { page:'1b', r:1, c:0   },   // what's happening
+          { page:'1b', r:1, c:4   },   // I don't understand
+          { page:'2',  r:0, c:4   },   // something's wrong
+        ]
+      },
+      {
+        title: 'Time to pack up 🧹',
+        desc:  'The activity is finished and it\'s time to transition to something new. What might you model on the PODD book?',
+        answers: [
+          { page:'1a', r:1, c:3   },   // finish
+          { page:'1a', r:1, c:2   },   // hurry up
+          { page:'1a', r:2, c:2   },   // stop, wait
+          { page:'1b', r:2, c:0   },   // what's next
+          { page:'2',  r:0, c:0   },   // it's time to
+          { page:'2',  r:1, c:0   },   // pack up
+        ]
+      },
+      {
+        title: 'Redirecting a student 🙅',
+        desc:  'A student keeps reaching for materials that aren\'t for them right now. What might you model to redirect them?',
+        answers: [
+          { page:'1a', r:0, c:1   },   // not, don't, can't
+          { page:'1a', r:2, c:2   },   // stop, wait
+          { page:'1b', r:0, c:2   },   // don't touch
+          { page:'1b', r:0, c:3   },   // I'm busy
+        ]
+      },
+    ];
+
+    // ── Activity state ────────────────────────────────────────────────────
+    let activityActive = false;
+    let scenarioIndex  = 0;
+    let foundKeys      = [];
+
+    // Panel elements
+    const apPanel    = document.getElementById('activity-panel');
+    const apToggle   = document.getElementById('ap-toggle');
+    const apCounter  = document.getElementById('ap-counter');
+    const apDots     = document.getElementById('ap-dots');
+    const apTitle    = document.getElementById('ap-title');
+    const apDesc     = document.getElementById('ap-desc');
+    const apFound    = document.getElementById('ap-found');
+    const apFeedback = document.getElementById('ap-feedback');
+    const apNext     = document.getElementById('ap-next');
+    const apStart    = document.getElementById('ap-start');
+
+    // Build dots
+    scenarios.forEach(() => {
+      const d = document.createElement('div');
+      d.className = 'ap-dot';
+      apDots.appendChild(d);
+    });
+
+    apToggle.addEventListener('click', () => {
+      const c = apPanel.classList.toggle('collapsed');
+      apToggle.textContent = c ? '▲' : '▼';
+    });
+
+    apStart.addEventListener('click', () => {
+      activityActive = true;
+      scenarioIndex  = 0;
+      showScenario();
+    });
+
+    apNext.addEventListener('click', () => {
+      scenarioIndex++;
+      if (scenarioIndex < scenarios.length) {
+        showScenario();
+      } else {
+        endActivity();
+      }
+    });
+
+    function showScenario() {
+      foundKeys = [];
+      const s = scenarios[scenarioIndex];
+      apCounter.textContent = `Scenario ${scenarioIndex + 1} of ${scenarios.length}`;
+      apTitle.textContent   = s.title;
+      apDesc.textContent    = s.desc;
+      apFound.innerHTML     = '';
+      apFeedback.style.display = 'none';
+      apNext.style.display  = 'none';
+      apStart.style.display = 'none';
+      document.querySelectorAll('.ap-dot').forEach((d, i) => {
+        d.classList.toggle('active', i === scenarioIndex);
+        d.classList.toggle('done',   i < scenarioIndex);
+      });
+      goToPage('1a');
+    }
+
+    function handleActivityTap(cell, btn) {
+      const s   = scenarios[scenarioIndex];
+      const key = `${currentPage}-${cell.r}-${String(cell.c)}`;
+      const isAnswer = s.answers.some(a =>
+        a.page === currentPage && a.r === cell.r && String(a.c) === String(cell.c)
+      );
+
+      if (isAnswer && !foundKeys.includes(key)) {
+        foundKeys.push(key);
+        const label = cell.word.split(',')[0].trim();
+        const badge = document.createElement('span');
+        badge.className   = 'found-badge';
+        badge.textContent = `✅ ${label}`;
+        apFound.appendChild(badge);
+        btn.classList.add('correct-flash');
+        setTimeout(() => btn.classList.remove('correct-flash'), 900);
+        apFeedback.style.cssText = 'display:block; background:#e8f5e9; color:#2e7d32; border:1px solid #a5d6a7;';
+        apFeedback.textContent   = `✅ Great choice! "${label}" is a great thing to say here. Keep exploring — there are more!`;
+        apNext.style.display = '';
+      } else if (!isAnswer && cell.c !== 'nav') {
+        apFeedback.style.cssText = 'display:block; background:#fff3e0; color:#e65100; border:1px solid #ffcc80;';
+        apFeedback.textContent   = '🤔 That might not fit this situation — keep exploring the PODD book!';
+      }
+    }
+
+    function endActivity() {
+      activityActive = false;
+      apCounter.textContent    = '';
+      apFound.innerHTML        = '';
+      apFeedback.style.display = 'none';
+      apNext.style.display     = 'none';
+      apTitle.textContent      = '🎉 Well done!';
+      apDesc.textContent       = 'You\'ve completed all the scenarios! The more you explore the PODD book, the more natural modelling will feel for your students.';
+      document.querySelectorAll('.ap-dot').forEach(d => { d.classList.remove('active'); d.classList.add('done'); });
+    }
+
     // ── Debug: press D to toggle button outlines ─────────────────────────
     document.addEventListener('keydown', e => {
-      if (e.key === 'd' || e.key === 'D') {
-        document.body.classList.toggle('debug');
-      }
+      if (e.key === 'd' || e.key === 'D') document.body.classList.toggle('debug');
     });
   </script>
   <style>
