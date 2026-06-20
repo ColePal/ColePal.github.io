@@ -139,6 +139,10 @@
       <img class="page-img" src="podbook/page-2.png" alt="Page 2" draggable="false">
       <div class="page-overlay" id="overlay-2"></div>
     </div>
+    <div class="page" id="page-c">
+      <img class="page-img" src="podbook/page-c.png" alt="Categories" draggable="false">
+      <div class="page-overlay" id="overlay-c"></div>
+    </div>
   </div>
 
   <!-- Activity panel -->
@@ -201,7 +205,7 @@
         // Nav column
         { word: 'go back to page 1',           r:0, c:'nav', nav:'1a' },
         { word: 'ooops',                       r:1, c:'nav' },
-        { word: 'go to categories',            r:2, c:'nav' },
+        { word: 'go to categories',            r:2, c:'nav', nav:'c' },
         { word: 'turn the page',               r:3, c:'nav', nav:'1b' },
       ],
       '1b': [
@@ -232,7 +236,7 @@
         // Nav column
         { word: 'go back to page 1',           r:0, c:'nav', nav:'1a' },
         { word: 'ooops',                       r:1, c:'nav' },
-        { word: 'go to categories',            r:2, c:'nav' },
+        { word: 'go to categories',            r:2, c:'nav', nav:'c' },
         { word: 'go back to page 1a',          r:3, c:'nav', nav:'1a', spoken:'go back to page 1 A' },
       ],
       '2': [
@@ -263,7 +267,39 @@
         // Nav column (no 4th nav button on page 2)
         { word: 'go back to page 1',           r:0, c:'nav', nav:'1a' },
         { word: 'ooops',                       r:1, c:'nav' },
-        { word: 'go to categories',            r:2, c:'nav' },
+        { word: 'go to categories',            r:2, c:'nav', nav:'c' },
+        // r:3 nav is blank on page 2
+      ],
+      'c': [
+        // Row 0
+        { word: "it's already happened",       r:0, c:0 },
+        { word: 'people',                      r:0, c:1 },
+        { word: 'activities',                  r:0, c:2 },
+        { word: 'clothes',                     r:0, c:3 },
+        { word: 'insert name and symbol',      r:0, c:4, silent:true },
+        // Row 1
+        { word: "it's about now",              r:1, c:0 },
+        { word: 'actions',                     r:1, c:1 },
+        { word: 'places',                      r:1, c:2 },
+        { word: 'things',                      r:1, c:3 },
+        { word: 'transport',                   r:1, c:4 },
+        // Row 2
+        { word: "it's going to happen",        r:2, c:0 },
+        { word: 'descriptions',                r:2, c:1 },
+        { word: 'special event',               r:2, c:2 },
+        { word: 'house, garden',               r:2, c:3 },
+        { word: 'characters',                  r:2, c:4 },
+        // Row 3
+        { word: "it's always happening",       r:3, c:0 },
+        { word: 'days and time',               r:3, c:1 },
+        { word: 'health',                      r:3, c:2 },
+        { word: 'food, drink',                 r:3, c:3 },
+        { word: 'animals',                     r:3, c:4 },
+        // Nav column
+        { word: 'go back to page 1',           r:0, c:'nav', nav:'1a' },
+        { word: 'ooops',                       r:1, c:'nav' },
+        { word: "it's not in my book, I'll give you a hint", r:2, c:'nav' },
+        { word: 'turn the page',               r:3, c:'nav' },
       ],
     };
 
