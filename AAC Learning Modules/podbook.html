@@ -138,13 +138,15 @@
         { word: "that's mine",                 r:1, c:2 },
         { word: 'go away',                     r:1, c:3 },
         { word: "I don't understand",          r:1, c:4 },
-        // Row 2  (col 1 is a blank instruction note — not interactive)
+        // Row 2  (col 1 is a blank instruction note — silent, no auditory feedback)
         { word: "what's next",                 r:2, c:0 },
+        { word: 'add social phrases',          r:2, c:1, silent:true },
         { word: 'you have to share',           r:2, c:2 },
         { word: 'leave me alone',              r:2, c:3 },
         { word: 'I forgot',                    r:2, c:4 },
-        // Row 3  (col 1 is blank — not interactive)
+        // Row 3  (col 1 is blank — silent, no auditory feedback)
         { word: 'can I play',                  r:3, c:0 },
+        { word: 'add social phrases',          r:3, c:1, silent:true },
         { word: 'I want to do what the others are doing', r:3, c:2 },
         { word: 'goodbye',                     r:3, c:3 },
         { word: 'I love you',                  r:3, c:4 },
@@ -201,7 +203,7 @@
 
         const spoken = cell.word.split(',')[0].trim();
         btn.addEventListener('click', () => {
-          speak(spoken, btn);
+          if (!cell.silent) speak(spoken, btn);
           if (cell.nav) setTimeout(() => goToPage(cell.nav), 200);
         });
 
