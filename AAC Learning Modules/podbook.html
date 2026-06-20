@@ -353,6 +353,7 @@
       {
         title: 'Getting ready to read 📖',
         desc:  'You\'re about to read a story with a student. What might you model on the PODD book to help get them ready?',
+        hint:  '💡 Try pressing <strong>More to say</strong> to open page 2 — there are more options there!',
         answers: [
           { page:'1a', r:0, c:4   },   // more to say (navigates to page 2)
           { page:'1a', r:0, c:2   },   // ready
@@ -492,9 +493,25 @@
         apFound.appendChild(badge);
         btn.classList.add('correct-flash');
         setTimeout(() => btn.classList.remove('correct-flash'), 900);
+
         apFeedback.style.cssText = 'display:block; background:#e8f5e9; color:#2e7d32; border:1px solid #a5d6a7;';
-        apFeedback.textContent   = `✅ Great choice! "${label}" is a great thing to say here. Keep exploring — there are more!`;
+        if (foundKeys.length === 1 && s.hint) {
+          apFeedback.innerHTML = `✅ Great choice! "${label}" is a great thing to say here. Keep exploring!<br><span style="font-weight:normal;font-size:0.8em">${s.hint}</span>`;
+        } else {
+          apFeedback.textContent = `✅ Great choice! "${label}" — keep going, find ${4 - foundKeys.length} more!`;
+        }
         apNext.style.display = '';
+
+        if (foundKeys.length >= 4) {
+          apFeedback.style.cssText = 'display:block; background:#e8f5e9; color:#2e7d32; border:1px solid #a5d6a7;';
+          apFeedback.textContent = '🎉 Excellent! Moving to the next scenario…';
+          apNext.style.display = 'none';
+          setTimeout(() => {
+            scenarioIndex++;
+            if (scenarioIndex < scenarios.length) showScenario();
+            else endActivity();
+          }, 1800);
+        }
       } else if (!isAnswer && cell.c !== 'nav' && !cell.nav) {
         apFeedback.style.cssText = 'display:block; background:#fff3e0; color:#e65100; border:1px solid #ffcc80;';
         apFeedback.textContent   = '🤔 That might not fit this situation — keep exploring the PODD book!';
