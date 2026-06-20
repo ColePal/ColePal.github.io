@@ -125,6 +125,21 @@
     }
     #ap-start:hover { background: #2E7D32; }
 
+    #ap-hint-btn {
+      position: fixed; bottom: 18px; right: 18px;
+      background: #F9A825; color: #000; border: 3px solid #F57F17;
+      border-radius: 50px; padding: 10px 18px;
+      font-size: 1rem; font-weight: 800; cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+      display: none; z-index: 400;
+      animation: hint-pulse 2s infinite;
+    }
+    #ap-hint-btn:hover { background: #FFD54F; }
+    @keyframes hint-pulse {
+      0%,100% { transform: scale(1); }
+      50%      { transform: scale(1.07); }
+    }
+
     #speech-bar { font-size: 0.9rem; color: #aaa; min-height: 1.4em; text-align: center; }
   </style>
 </head>
@@ -164,6 +179,8 @@
       <button id="ap-next">Next Scenario →</button>
     </div>
   </div>
+
+  <button id="ap-hint-btn">💡 Hint</button>
 
   <div id="speech-bar"></div>
 
@@ -360,7 +377,6 @@
         desc:  'You\'re about to read a story with a student. What might you model on the PODD book to help get them ready?',
         hint:  '💡 Try pressing <strong>More to say</strong> to open page 2 — there are more options there!',
         answers: [
-          { page:'1a', r:0, c:0   },   // I, me, my, mine
           { page:'1a', r:0, c:2   },   // ready
           { page:'1a', r:0, c:3   },   // more
           { page:'1a', r:1, c:0   },   // you, your
@@ -374,7 +390,6 @@
           { page:'2',  r:0, c:2   },   // I have an idea
           { page:'2',  r:0, c:3   },   // I want to do an activity
           { page:'2',  r:1, c:1   },   // I'm telling you something
-          { page:'2',  r:1, c:2   },   // let's pretend
           { page:'2',  r:1, c:3   },   // let's go
           { page:'2',  r:2, c:1   },   // I'm telling a story
           { page:'2',  r:2, c:2   },   // I want to show you something
@@ -382,7 +397,8 @@
           { page:'2',  r:3, c:1   },   // remember when
           { page:'c',  r:0, c:2   },   // activities
           { page:'c',  r:2, c:4   },   // characters
-        ]
+        ],
+        hintMsg: "Try 'ready' or 'see, look, watch' on page 1a. Press More to say to reach page 2 — look for 'I'm telling a story' or 'I want to show you something'."
       },
       {
         title: 'A student seems upset 😟',
@@ -390,19 +406,15 @@
         answers: [
           { page:'1a', r:0, c:0   },   // I, me, my, mine
           { page:'1a', r:0, c:1   },   // not, don't, can't
-          { page:'1a', r:1, c:0   },   // you — "are you okay?"
+          { page:'1a', r:1, c:0   },   // you
           { page:'1a', r:1, c:1   },   // do, did, does
-          { page:'1a', r:1, c:3   },   // finish — "are you finished?"
+          { page:'1a', r:1, c:3   },   // finish
           { page:'1a', r:2, c:0   },   // uh oh, oh no
           { page:'1a', r:2, c:1   },   // want
           { page:'1a', r:2, c:2   },   // stop, wait
           { page:'1a', r:2, c:3   },   // let's do something else
-          { page:'1a', r:2, c:4   },   // please
-          { page:'1a', r:3, c:0   },   // I don't know
           { page:'1a', r:3, c:1   },   // see, look, watch
           { page:'1a', r:3, c:2   },   // help
-          { page:'1b', r:0, c:1   },   // I'm sorry
-          { page:'1b', r:0, c:4   },   // I understand
           { page:'1b', r:1, c:0   },   // what's happening
           { page:'1b', r:1, c:3   },   // go away
           { page:'1b', r:1, c:4   },   // I don't understand
@@ -410,23 +422,20 @@
           { page:'2',  r:0, c:1   },   // I'm asking a question
           { page:'2',  r:0, c:4   },   // something's wrong
           { page:'2',  r:1, c:1   },   // I'm telling you something
-          { page:'2',  r:2, c:0   },   // please get my communicator
           { page:'2',  r:3, c:4   },   // I don't like this
           { page:'c',  r:3, c:2   },   // health
-        ]
+        ],
+        hintMsg: "Try 'help', 'stop/wait', or 'want' on page 1a. Turn to page 1b for 'what's happening', 'go away', or 'leave me alone'. Press More to say for page 2 — try 'something's wrong'."
       },
       {
         title: 'Transitioning to a frame 🚶',
         desc:  'You are supporting a student to move to their standing or walking frame. What might you model on the PODD book to prepare them?',
         answers: [
-          { page:'1a', r:0, c:0   },   // I, me, my, mine
-          { page:'1a', r:0, c:1   },   // not, don't, can't
           { page:'1a', r:0, c:2   },   // ready
           { page:'1a', r:0, c:3   },   // more
-          { page:'1a', r:1, c:0   },   // you — "you ready?"
+          { page:'1a', r:1, c:0   },   // you
           { page:'1a', r:1, c:1   },   // do, did, does
-          { page:'1a', r:1, c:3   },   // finish — finishing to transition
-          { page:'1a', r:2, c:2   },   // stop, wait
+          { page:'1a', r:1, c:3   },   // finish
           { page:'1a', r:2, c:3   },   // let's do something else
           { page:'1a', r:2, c:4   },   // please
           { page:'1a', r:3, c:1   },   // see, look, watch
@@ -434,25 +443,21 @@
           { page:'1b', r:2, c:0   },   // what's next
           { page:'2',  r:0, c:0   },   // it's time to
           { page:'2',  r:0, c:1   },   // I'm asking a question
-          { page:'2',  r:1, c:0   },   // pack up
           { page:'2',  r:1, c:3   },   // let's go
           { page:'2',  r:2, c:3   },   // do something
-        ]
+        ],
+        hintMsg: "Try 'ready' or 'do/did/does' on page 1a. Press More to say for page 2 — try 'it's time to', 'let's go', or 'do something'."
       },
       {
         title: 'Making a choice between two 🤔',
         desc:  'The student is working on making choices between two options. How might you prepare them for the question using the PODD book?',
         answers: [
-          { page:'1a', r:0, c:0   },   // I, me, my, mine
-          { page:'1a', r:0, c:1   },   // not, don't, can't
           { page:'1a', r:0, c:2   },   // ready
           { page:'1a', r:0, c:3   },   // more
           { page:'1a', r:1, c:0   },   // you
           { page:'1a', r:1, c:1   },   // do, did, does
           { page:'1a', r:1, c:4   },   // I think it's
           { page:'1a', r:2, c:1   },   // want
-          { page:'1a', r:2, c:4   },   // please
-          { page:'1a', r:3, c:0   },   // I don't know
           { page:'1a', r:3, c:1   },   // see, look, watch
           { page:'1a', r:3, c:2   },   // help
           { page:'2',  r:0, c:1   },   // I'm asking a question
@@ -462,36 +467,31 @@
           { page:'2',  r:1, c:4   },   // I think it's (p2)
           { page:'2',  r:2, c:3   },   // do something
           { page:'2',  r:2, c:4   },   // I like this
-          { page:'2',  r:3, c:4   },   // I don't like this
-        ]
+        ],
+        hintMsg: "Try 'want', 'do/did/does', or 'I think it's' on page 1a. Press More to say for page 2 — try 'I'm asking a question', 'I like this', or 'I want to do an activity'."
       },
       {
         title: 'Preparing for personal care 🤝',
         desc:  'You are about to support a student with personal care such as tube-feeding or a hoist transfer. What might you model to let them know what\'s happening?',
         answers: [
-          { page:'1a', r:0, c:0   },   // I, me, my, mine
-          { page:'1a', r:0, c:1   },   // not, don't, can't — consent/refusal
           { page:'1a', r:0, c:2   },   // ready
           { page:'1a', r:0, c:3   },   // more
-          { page:'1a', r:1, c:0   },   // you — "you ready?"
+          { page:'1a', r:1, c:0   },   // you
           { page:'1a', r:1, c:1   },   // do, did, does
-          { page:'1a', r:1, c:3   },   // finish — when it's done
-          { page:'1a', r:2, c:2   },   // stop, wait — safety word
+          { page:'1a', r:1, c:3   },   // finish
           { page:'1a', r:2, c:3   },   // let's do something else
-          { page:'1a', r:2, c:4   },   // please
           { page:'1a', r:3, c:2   },   // help
-          { page:'1b', r:0, c:4   },   // I understand
           { page:'1b', r:1, c:0   },   // what's happening
           { page:'2',  r:0, c:0   },   // it's time to
           { page:'2',  r:0, c:1   },   // I'm asking a question
           { page:'2',  r:0, c:4   },   // something's wrong
           { page:'2',  r:1, c:1   },   // I'm telling you something
           { page:'2',  r:1, c:3   },   // let's go
-          { page:'2',  r:2, c:0   },   // please get my communicator
           { page:'2',  r:2, c:3   },   // do something
           { page:'2',  r:3, c:0   },   // I need to go to the toilet
           { page:'c',  r:3, c:2   },   // health
-        ]
+        ],
+        hintMsg: "Try 'ready' or 'help' on page 1a. Turn to page 1b for 'what's happening'. Press More to say for page 2 — try 'it's time to', 'do something', or 'let's go'."
       },
     ];
 
@@ -511,6 +511,7 @@
     const apFeedback = document.getElementById('ap-feedback');
     const apNext     = document.getElementById('ap-next');
     const apStart    = document.getElementById('ap-start');
+    const apHintBtn  = document.getElementById('ap-hint-btn');
 
     // Build dots
     scenarios.forEach(() => {
@@ -527,7 +528,14 @@
     apStart.addEventListener('click', () => {
       activityActive = true;
       scenarioIndex  = 0;
+      apHintBtn.style.display = '';
       showScenario();
+    });
+
+    apHintBtn.addEventListener('click', () => {
+      const s = scenarios[scenarioIndex];
+      apFeedback.style.cssText = 'display:block; background:#fffde7; color:#5d4037; border:1px solid #ffe082;';
+      apFeedback.innerHTML = `💡 <strong>Hint:</strong> ${s.hintMsg || 'Explore the different pages using the navigation buttons.'}`;
     });
 
     apNext.addEventListener('click', () => {
@@ -614,6 +622,7 @@
 
     function endActivity() {
       activityActive = false;
+      apHintBtn.style.display  = 'none';
       apCounter.textContent    = '';
       apFound.innerHTML        = '';
       apFeedback.style.display = 'none';
