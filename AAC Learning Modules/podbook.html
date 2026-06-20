@@ -148,7 +148,7 @@
       <div id="ap-counter"></div>
       <div id="ap-dots"></div>
       <h2 id="ap-title">Try to Say 🗣️</h2>
-      <p  id="ap-desc">You'll be given 4 real-life scenarios. Navigate the PODD book and tap a symbol that would be relevant to say in each situation. There may be more than one right answer!</p>
+      <p  id="ap-desc">You'll be given 5 real-life scenarios. Navigate the PODD book and tap a symbol that would be relevant to say in each situation. There may be more than one right answer!</p>
       <div id="ap-found"></div>
       <div id="ap-feedback"></div>
       <button id="ap-start">Start Activity →</button>
@@ -338,25 +338,37 @@
         ]
       },
       {
-        title: 'Time to pack up 🧹',
-        desc:  'The activity is finished and it\'s time to transition to something new. What might you model on the PODD book?',
+        title: 'Transitioning to a frame 🚶',
+        desc:  'You are supporting a student to move to their standing or walking frame. What might you model on the PODD book to prepare them?',
         answers: [
-          { page:'1a', r:1, c:3   },   // finish
-          { page:'1a', r:1, c:2   },   // hurry up
-          { page:'1a', r:2, c:2   },   // stop, wait
-          { page:'1b', r:2, c:0   },   // what's next
+          { page:'1a', r:0, c:2   },   // ready
+          { page:'1a', r:3, c:2   },   // help
           { page:'2',  r:0, c:0   },   // it's time to
-          { page:'2',  r:1, c:0   },   // pack up
+          { page:'2',  r:2, c:3   },   // do something (actions/verbs)
         ]
       },
       {
-        title: 'Redirecting a student 🙅',
-        desc:  'A student keeps reaching for materials that aren\'t for them right now. What might you model to redirect them?',
+        title: 'Making a choice between two 🤔',
+        desc:  'The student is working on making choices between two options. How might you prepare them for the question using the PODD book?',
         answers: [
-          { page:'1a', r:0, c:1   },   // not, don't, can't
-          { page:'1a', r:2, c:2   },   // stop, wait
-          { page:'1b', r:0, c:2   },   // don't touch
-          { page:'1b', r:0, c:3   },   // I'm busy
+          { page:'1a', r:2, c:1   },   // want
+          { page:'1a', r:1, c:1   },   // do, did, does
+          { page:'1a', r:1, c:0   },   // you
+          { page:'1a', r:1, c:4   },   // I think it's
+          { page:'2',  r:0, c:3   },   // I want to do an activity
+          { page:'2',  r:1, c:4   },   // I think it's (p2)
+          { page:'2',  r:2, c:4   },   // I like this
+          { page:'2',  r:3, c:4   },   // I don't like this
+        ]
+      },
+      {
+        title: 'Preparing for personal care 🤝',
+        desc:  'You are about to support a student with personal care such as tube-feeding or a hoist transfer. What might you model to let them know what\'s happening?',
+        answers: [
+          { page:'1a', r:0, c:2   },   // ready
+          { page:'1a', r:3, c:2   },   // help
+          { page:'2',  r:0, c:0   },   // it's time to
+          { page:'2',  r:2, c:0   },   // please get my communicator
         ]
       },
     ];
