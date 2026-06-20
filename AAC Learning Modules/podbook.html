@@ -318,6 +318,7 @@
         title: 'Getting ready to read 📖',
         desc:  'You\'re about to read a story with a student. What might you model on the PODD book to help get them ready?',
         answers: [
+          { page:'1a', r:0, c:4   },   // more to say (navigates to page 2)
           { page:'1a', r:0, c:2   },   // ready
           { page:'1a', r:1, c:0   },   // you
           { page:'1a', r:3, c:1   },   // see, look, watch
@@ -331,16 +332,18 @@
         title: 'A student seems upset 😟',
         desc:  'A student seems distressed but isn\'t communicating why. What might you model to help them express what\'s wrong?',
         answers: [
+          { page:'1a', r:0, c:4   },   // more to say (navigates to page 2)
           { page:'1a', r:3, c:2   },   // help
+          { page:'2',  r:0, c:4   },   // something's wrong
           { page:'1b', r:1, c:0   },   // what's happening
           { page:'1b', r:1, c:4   },   // I don't understand
-          { page:'2',  r:0, c:4   },   // something's wrong
         ]
       },
       {
         title: 'Transitioning to a frame 🚶',
         desc:  'You are supporting a student to move to their standing or walking frame. What might you model on the PODD book to prepare them?',
         answers: [
+          { page:'1a', r:0, c:4   },   // more to say (navigates to page 2)
           { page:'1a', r:0, c:2   },   // ready
           { page:'1a', r:3, c:2   },   // help
           { page:'2',  r:0, c:0   },   // it's time to
@@ -351,10 +354,12 @@
         title: 'Making a choice between two 🤔',
         desc:  'The student is working on making choices between two options. How might you prepare them for the question using the PODD book?',
         answers: [
+          { page:'1a', r:0, c:4   },   // more to say (navigates to page 2)
           { page:'1a', r:2, c:1   },   // want
           { page:'1a', r:1, c:1   },   // do, did, does
           { page:'1a', r:1, c:0   },   // you
           { page:'1a', r:1, c:4   },   // I think it's
+          { page:'2',  r:0, c:1   },   // I'm asking a question
           { page:'2',  r:0, c:3   },   // I want to do an activity
           { page:'2',  r:1, c:4   },   // I think it's (p2)
           { page:'2',  r:2, c:4   },   // I like this
@@ -365,6 +370,7 @@
         title: 'Preparing for personal care 🤝',
         desc:  'You are about to support a student with personal care such as tube-feeding or a hoist transfer. What might you model to let them know what\'s happening?',
         answers: [
+          { page:'1a', r:0, c:4   },   // more to say (navigates to page 2)
           { page:'1a', r:0, c:2   },   // ready
           { page:'1a', r:3, c:2   },   // help
           { page:'2',  r:0, c:0   },   // it's time to
@@ -453,7 +459,7 @@
         apFeedback.style.cssText = 'display:block; background:#e8f5e9; color:#2e7d32; border:1px solid #a5d6a7;';
         apFeedback.textContent   = `✅ Great choice! "${label}" is a great thing to say here. Keep exploring — there are more!`;
         apNext.style.display = '';
-      } else if (!isAnswer && cell.c !== 'nav') {
+      } else if (!isAnswer && cell.c !== 'nav' && !cell.nav) {
         apFeedback.style.cssText = 'display:block; background:#fff3e0; color:#e65100; border:1px solid #ffcc80;';
         apFeedback.textContent   = '🤔 That might not fit this situation — keep exploring the PODD book!';
       }
