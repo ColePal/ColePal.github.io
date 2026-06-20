@@ -125,21 +125,20 @@
     }
     #ap-start:hover { background: #2E7D32; }
 
-    #ap-hint-btn {
-      position: absolute;
-      top: 85%; left: 68%;
-      width: 29%; height: 14%;
-      background: #F9A825; color: #000; border: 3px solid #F57F17;
-      border-radius: 12px; padding: 0;
-      font-size: clamp(0.7rem, 2vw, 1rem); font-weight: 800; cursor: pointer;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.35);
-      display: none; z-index: 400;
-      animation: hint-pulse 2s infinite;
+    #ap-hint-toggle {
+      background: none; border: 1px dashed #F9A825; color: #c17f00;
+      border-radius: 6px; padding: 4px 10px; font-size: 0.88rem;
+      cursor: pointer; margin-bottom: 6px; display: none;
     }
-    #ap-hint-btn:hover { background: #FFD54F; }
-    @keyframes hint-pulse {
-      0%,100% { transform: scale(1); }
-      50%      { transform: scale(1.07); }
+    #ap-hint-toggle:hover { background: #fffde7; }
+    #ap-hint-toggle:hover + #ap-hint-text,
+    #ap-hint-text:hover {
+      display: block;
+    }
+    #ap-hint-text {
+      display: none; background: #fffde7; color: #5d4037;
+      border: 1px solid #ffe082; border-radius: 6px;
+      padding: 6px 10px; font-size: 0.88rem; margin-bottom: 6px; text-align: left;
     }
 
     #speech-bar { font-size: 0.9rem; color: #aaa; min-height: 1.4em; text-align: center; }
@@ -163,7 +162,7 @@
       <img class="page-img" src="podbook/page-c.png" alt="Categories" draggable="false">
       <div class="page-overlay" id="overlay-c"></div>
     </div>
-    <button id="ap-hint-btn">💡 Hint</button>
+    <button id="ap-hint-btn" style="display:none"></button>
   </div>
 
   <!-- Activity panel -->
@@ -176,6 +175,8 @@
       <p  id="ap-desc">You'll be given 5 real-life scenarios. Navigate the PODD book and tap a symbol that would be relevant to say in each situation. There may be more than one right answer!<br><br>💡 <strong>Tip:</strong> tap the <strong>▼</strong> button in the corner to collapse this panel if it's in the way.</p>
       <div id="ap-found"></div>
       <div id="ap-feedback"></div>
+      <button id="ap-hint-toggle">💡 Need a hint?</button>
+      <div id="ap-hint-text"></div>
       <button id="ap-start">Start Activity →</button>
       <button id="ap-next">Next Scenario →</button>
     </div>
@@ -500,7 +501,8 @@
     const apFeedback = document.getElementById('ap-feedback');
     const apNext     = document.getElementById('ap-next');
     const apStart    = document.getElementById('ap-start');
-    const apHintBtn  = document.getElementById('ap-hint-btn');
+    const apHintToggle = document.getElementById('ap-hint-toggle');
+    const apHintText   = document.getElementById('ap-hint-text');
 
     // Build dots
     scenarios.forEach(() => {
@@ -517,14 +519,8 @@
     apStart.addEventListener('click', () => {
       activityActive = true;
       scenarioIndex  = 0;
-      apHintBtn.style.display = '';
+      apHintToggle.style.display = '';
       showScenario();
-    });
-
-    apHintBtn.addEventListener('click', () => {
-      const s = scenarios[scenarioIndex];
-      apFeedback.style.cssText = 'display:block; background:#fffde7; color:#5d4037; border:1px solid #ffe082;';
-      apFeedback.innerHTML = `💡 <strong>Hint:</strong> ${s.hintMsg || 'Explore the different pages using the navigation buttons.'}`;
     });
 
     apNext.addEventListener('click', () => {
@@ -546,6 +542,8 @@
       apFeedback.style.display = 'none';
       apNext.style.display  = 'none';
       apStart.style.display = 'none';
+      apHintText.style.display = 'none';
+      apHintText.textContent = s.hintMsg || 'Explore the different pages using the navigation buttons.';
       document.querySelectorAll('.ap-dot').forEach((d, i) => {
         d.classList.toggle('active', i === scenarioIndex);
         d.classList.toggle('done',   i < scenarioIndex);
@@ -611,7 +609,8 @@
 
     function endActivity() {
       activityActive = false;
-      apHintBtn.style.display  = 'none';
+      apHintToggle.style.display = 'none';
+      apHintText.style.display   = 'none';
       apCounter.textContent    = '';
       apFound.innerHTML        = '';
       apFeedback.style.display = 'none';
