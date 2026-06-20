@@ -126,10 +126,12 @@
     #ap-start:hover { background: #2E7D32; }
 
     #ap-hint-btn {
-      position: fixed; top: 12px; right: 12px;
+      position: absolute;
+      top: 85%; left: 68%;
+      width: 29%; height: 14%;
       background: #F9A825; color: #000; border: 3px solid #F57F17;
-      border-radius: 50px; padding: 10px 18px;
-      font-size: 1rem; font-weight: 800; cursor: pointer;
+      border-radius: 12px; padding: 0;
+      font-size: clamp(0.7rem, 2vw, 1rem); font-weight: 800; cursor: pointer;
       box-shadow: 0 4px 14px rgba(0,0,0,0.35);
       display: none; z-index: 400;
       animation: hint-pulse 2s infinite;
@@ -144,8 +146,6 @@
   </style>
 </head>
 <body>
-  <h1>PodBook</h1>
-
   <div id="book-wrap">
     <div class="page active" id="page-1a">
       <img class="page-img" src="podbook/page-1a.png" alt="Page 1a" draggable="false">
@@ -163,10 +163,8 @@
       <img class="page-img" src="podbook/page-c.png" alt="Categories" draggable="false">
       <div class="page-overlay" id="overlay-c"></div>
     </div>
+    <button id="ap-hint-btn">💡 Hint</button>
   </div>
-
-  <!-- Activity panel -->
-  <div id="activity-panel">
     <button id="ap-toggle" title="Collapse">▼</button>
     <div id="ap-body">
       <div id="ap-counter"></div>
@@ -180,9 +178,8 @@
     </div>
   </div>
 
-  <button id="ap-hint-btn">💡 Hint</button>
-
-  <div id="speech-bar"></div>
+  <!-- Activity panel -->
+  <div id="activity-panel">
 
   <script>
     // ── Grid layout (% of image size, consistent across all pages) ────────
