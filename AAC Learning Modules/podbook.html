@@ -73,6 +73,11 @@
       z-index: 300;
       text-align: center;
     }
+    #activity-panel.panel-middle {
+      bottom: auto;
+      top: 50%;
+      transform: translate(-50%, -50%);
+    }
     #ap-toggle {
       position: absolute; top: 5px; right: 8px;
       background: none; border: none; font-size: 0.9rem;
@@ -525,6 +530,8 @@
         d.classList.toggle('done',   i < scenarioIndex);
       });
       goToPage('1a');
+      // Personal care scenario (last): move panel to centre so bottom row is accessible
+      apPanel.classList.toggle('panel-middle', scenarioIndex === scenarios.length - 1);
     }
 
     function handleActivityTap(cell, btn) {
