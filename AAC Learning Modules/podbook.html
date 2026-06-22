@@ -66,7 +66,7 @@
       transform: translateX(-50%);
       background: #fff;
       border-radius: 10px;
-      padding: 7px 16px 10px;
+      padding: 4px 10px 6px;
       max-width: 500px;
       width: 92%;
       box-shadow: 0 8px 28px rgba(0,0,0,0.5);
@@ -85,7 +85,7 @@
     }
     #ap-toggle:hover { color: #555; }
     #activity-panel.collapsed #ap-body { display: none; }
-    #activity-panel.collapsed { padding: 6px 16px; }
+    #activity-panel.collapsed { padding: 4px 10px; }
 
     #ap-counter { font-size: 0.72rem; color: #999; margin-bottom: 4px; }
     #ap-dots { display: flex; gap: 5px; justify-content: center; margin-bottom: 6px; }
@@ -141,7 +141,6 @@
       padding: 6px 10px; font-size: 0.88rem; margin-bottom: 6px; text-align: left;
     }
 
-    #speech-bar { font-size: 0.9rem; color: #aaa; min-height: 1.4em; text-align: center; }
   </style>
 </head>
 <body>
@@ -181,8 +180,6 @@
       <button id="ap-next">Next Scenario →</button>
     </div>
   </div>
-
-  <div id="speech-bar"></div>
 
   <script>
     // ── Grid layout (% of image size, consistent across all pages) ────────
@@ -358,14 +355,12 @@
     }
 
     // ── Speech ────────────────────────────────────────────────────────────
-    const speechBar = document.getElementById('speech-bar');
     function speak(word, btn) {
       window.speechSynthesis.cancel();
       window.speechSynthesis.resume();
       const utt = new SpeechSynthesisUtterance(word);
       utt.rate = 0.88;
       window.speechSynthesis.speak(utt);
-      if (speechBar) speechBar.textContent = `🔊  "${word}"`;
       btn.classList.add('flash');
       setTimeout(() => btn.classList.remove('flash'), 250);
     }
