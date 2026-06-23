@@ -170,7 +170,6 @@
       font-weight: 600;
     }
 
-    #speech-bar { font-size: 0.9rem; color: #aaa; min-height: 1.4em; text-align: center; }
   </style>
 </head>
 
@@ -192,8 +191,6 @@
       <div id="quiz-feedback"></div>
     </div>
   </div>
-
-  <div id="speech-bar"></div>
 
   <script>
     // ── Image dimensions (px) ─────────────────────────────────────────────────
@@ -293,7 +290,6 @@
     });
 
     // ── Speech ────────────────────────────────────────────────────────────
-    const speechBar = document.getElementById('speech-bar');
     function speak(word, btn) {
       window.speechSynthesis.cancel();
       // Chrome silently pauses synthesis after ~15 s of inactivity; resume it first
@@ -301,7 +297,6 @@
       const utt = new SpeechSynthesisUtterance(word);
       utt.rate = 0.88;
       window.speechSynthesis.speak(utt);
-      if (speechBar) speechBar.textContent = `🔊  "${word}"`;
       btn.classList.add('flash');
       setTimeout(() => btn.classList.remove('flash'), 250);
     }
@@ -346,6 +341,7 @@
     });
 
     let step = 0;
+    let onboardingDone = false;
 
     function showStep(i) {
       const s = steps[i];
@@ -362,6 +358,7 @@
     }
 
     nextBtn.addEventListener('click', () => {
+      if (onboardingDone) return;
       step++;
       if (step >= steps.length) {
         document.body.classList.remove('onboarding');
@@ -476,6 +473,7 @@
     }
 
     function endQuiz() {
+      onboardingDone = true;
       quizActive = false;
       document.body.classList.remove('quiz');
       document.body.classList.add('free-play');
@@ -494,7 +492,6 @@
 
       nextBtn.addEventListener('click', function handler() {
         panel.style.display = 'none';
-        if (speechBar) speechBar.textContent = 'Click any symbol to hear it spoken aloud.';
         nextBtn.removeEventListener('click', handler);
       }, { once: true });
     }
