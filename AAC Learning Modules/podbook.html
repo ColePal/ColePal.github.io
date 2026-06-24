@@ -14,7 +14,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 16px;
+      padding: 24px 8%;
       gap: 12px;
     }
 
@@ -23,7 +23,7 @@
     #book-wrap {
       position: relative;
       width: 100%;
-      max-width: 960px;
+      max-width: 750px;
       user-select: none;
     }
 
@@ -465,16 +465,23 @@
           { page:'1a', r:1, c:1   },   // do, did, does
           { page:'1a', r:1, c:3   },   // finish
           { page:'1a', r:2, c:3   },   // let's do something else
+          { page:'1a', r:2, c:4   },   // please
           { page:'1a', r:3, c:2   },   // help
           { page:'1a', r:3, c:3   },   // excuse me
           { page:'1b', r:1, c:0   },   // what's happening
+          { page:'2',  r:0, c:0   },   // it's time to
           { page:'2',  r:0, c:1   },   // I'm asking a question
+          { page:'2',  r:0, c:3   },   // I want to do an activity
           { page:'2',  r:0, c:4   },   // something's wrong
           { page:'2',  r:1, c:1   },   // I'm telling you something
           { page:'2',  r:1, c:3   },   // let's go
           { page:'2',  r:2, c:3   },   // do something
           { page:'2',  r:3, c:0   },   // I need to go to the toilet
+          { page:'c',  r:0, c:3   },   // clothes
+          { page:'c',  r:1, c:0   },   // it's about now
+          { page:'c',  r:2, c:0   },   // it's going to happen
           { page:'c',  r:3, c:2   },   // health
+          { page:'c',  r:3, c:3   },   // food, drink
         ],
         hintMsg: "Try 'ready' or 'help' on page 1a. Turn to page 1b for 'what's happening'. Press More to say for page 2 — try 'it's time to', 'do something', or 'let's go'."
       },
@@ -535,6 +542,7 @@
       apDesc.textContent    = s.desc;
       apFound.innerHTML     = '';
       apFeedback.style.display = 'none';
+      apNext.textContent    = 'Next Scenario →';
       apNext.style.display  = 'none';
       apStart.style.display = 'none';
       apHintText.style.display = 'none';
@@ -587,14 +595,11 @@
         apNext.style.display = '';
 
         if (foundKeys.length >= 3) {
+          const isLast = scenarioIndex === scenarios.length - 1;
           apFeedback.style.cssText = 'display:block; background:#e8f5e9; color:#2e7d32; border:1px solid #a5d6a7;';
-          apFeedback.textContent = '🎉 Excellent! Moving to the next scenario…';
-          apNext.style.display = 'none';
-          setTimeout(() => {
-            scenarioIndex++;
-            if (scenarioIndex < scenarios.length) showScenario();
-            else endActivity();
-          }, 1800);
+          apFeedback.textContent = '🎉 Excellent! You\'ve found enough words for this scenario.';
+          apNext.textContent = isLast ? 'Finish 🎉' : 'Next Scenario →';
+          apNext.style.display = '';
         }
       } else if (!isAnswer && cell.c !== 'nav' && !cell.nav) {
         apFeedback.style.cssText = 'display:block; background:#fff3e0; color:#e65100; border:1px solid #ffcc80;';
