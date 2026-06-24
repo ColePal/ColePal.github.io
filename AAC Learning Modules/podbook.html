@@ -592,8 +592,6 @@
         } else {
           apFeedback.textContent = `✅ Great choice! "${label}" — keep going, find ${3 - foundKeys.length} more!`;
         }
-        apNext.style.display = 'inline-block';
-
         if (foundKeys.length >= 3) {
           const isLast = scenarioIndex === scenarios.length - 1;
           apFeedback.style.cssText = 'display:block; background:#e8f5e9; color:#2e7d32; border:1px solid #a5d6a7;';
