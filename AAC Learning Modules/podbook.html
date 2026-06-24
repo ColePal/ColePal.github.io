@@ -592,14 +592,14 @@
         } else {
           apFeedback.textContent = `✅ Great choice! "${label}" — keep going, find ${3 - foundKeys.length} more!`;
         }
-        apNext.style.display = '';
+        apNext.style.display = 'inline-block';
 
         if (foundKeys.length >= 3) {
           const isLast = scenarioIndex === scenarios.length - 1;
           apFeedback.style.cssText = 'display:block; background:#e8f5e9; color:#2e7d32; border:1px solid #a5d6a7;';
           apFeedback.textContent = '🎉 Excellent! You\'ve found enough words for this scenario.';
           apNext.textContent = isLast ? 'Finish 🎉' : 'Next Scenario →';
-          apNext.style.display = '';
+          apNext.style.display = 'inline-block';
         }
       } else if (!isAnswer && cell.c !== 'nav' && !cell.nav) {
         apFeedback.style.cssText = 'display:block; background:#fff3e0; color:#e65100; border:1px solid #ffcc80;';
