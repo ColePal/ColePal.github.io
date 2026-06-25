@@ -260,7 +260,7 @@
       ],
       '2': [
         // Row 0
-        { word: "it's time to",                r:0, c:0 },
+        { word: "it's time to / for",            r:0, c:0 },
         { word: "I'm asking a question",       r:0, c:1 },
         { word: 'I have an idea',              r:0, c:2 },
         { word: 'I want to do an activity',    r:0, c:3 },
@@ -432,7 +432,7 @@
           { page:'2',  r:1, c:3   },   // let's go
           { page:'2',  r:2, c:3   },   // do something
         ],
-        hintMsg: "Try 'ready' or 'do/did/does' on page 1a. Press More to say for page 2 — try 'it's time to', 'let's go', or 'do something'."
+        hintMsg: "Try 'ready' or 'do/did/does' on page 1a. Press More to say for page 2 — try 'it's time to / for', 'let's go', or 'do something'."
       },
       {
         title: 'Making a choice between two 🤔',
@@ -445,6 +445,7 @@
           { page:'1a', r:2, c:1   },   // want
           { page:'1a', r:3, c:1   },   // see, look, watch
           { page:'1a', r:3, c:2   },   // help
+          { page:'2',  r:0, c:0   },   // it's time to / for
           { page:'2',  r:0, c:1   },   // I'm asking a question
           { page:'2',  r:0, c:2   },   // I have an idea
           { page:'2',  r:0, c:3   },   // I want to do an activity
@@ -483,7 +484,7 @@
           { page:'c',  r:3, c:2   },   // health
           { page:'c',  r:3, c:3   },   // food, drink
         ],
-        hintMsg: "Try 'ready' or 'help' on page 1a. Turn to page 1b for 'what's happening'. Press More to say for page 2 — try 'it's time to', 'do something', or 'let's go'."
+        hintMsg: "Try 'ready' or 'help' on page 1a. Turn to page 1b for 'what's happening'. Press More to say for page 2 — try 'it's time to / for', 'do something', or 'let's go'."
       },
     ];
 
@@ -552,8 +553,8 @@
         d.classList.toggle('done',   i < scenarioIndex);
       });
       goToPage('1a');
-      // Personal care scenario (last): move panel to centre so bottom row is accessible
-      apPanel.classList.toggle('panel-middle', scenarioIndex === scenarios.length - 1);
+      // All scenarios including personal care: keep panel at bottom
+      apPanel.classList.remove('panel-middle');
     }
 
     function handleActivityTap(cell, btn) {
@@ -616,6 +617,7 @@
       apTitle.textContent      = '🎉 Well done!';
       apDesc.textContent       = 'You\'ve completed all the scenarios! The more you explore the PODD book, the more natural modelling will feel for your students.';
       document.querySelectorAll('.ap-dot').forEach(d => { d.classList.remove('active'); d.classList.add('done'); });
+      apPanel.classList.add('panel-middle');
     }
 
     // ── Debug: press D to toggle button outlines ─────────────────────────
